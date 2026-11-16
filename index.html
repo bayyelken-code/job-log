@@ -430,7 +430,7 @@ select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w
           <label class="f" for="f-cxltime">Time told<input type="time" id="f-cxltime"></label>
         </div>
         <label class="f" for="f-cxlnote">What the company said<textarea id="f-cxlnote" placeholder="e.g. Cancelled by passenger, billable. Told by dispatcher at 6:40 PM"></textarea></label>
-        <div hidden>
+        <div>
           <div class="cap" style="margin-bottom:8px">Proof screenshots</div>
           <div class="proofs" id="proofs"></div>
           <div id="proofTools" class="actions" style="margin-top:10px">
@@ -438,7 +438,7 @@ select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w
             <button class="btn small" type="button" id="proofPick">Add proof screenshot</button>
             <input type="file" id="proofFile" accept="image/*" multiple hidden>
           </div>
-          <p class="hint" id="proofMsg" role="status" style="margin-top:8px">Screenshots are kept as evidence in the cloud and go into the backup file.</p>
+          <p class="hint" id="proofMsg" role="status" style="margin-top:8px">Screenshots are kept on this phone as evidence and go into the backup file.</p>
         </div>
       </div>
       <datalist id="dl-cxlby"><option value="Passenger"><option value="Client / company"><option value="Dispatcher"></datalist>
@@ -726,7 +726,7 @@ select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w
         <div><span>Cloud copy</span><b id="bk-cloud">Checking</b></div>
         <div><span>Last file backup</span><b class="num" id="bk-last">Never</b></div>
       </div>
-      <p class="hint" style="margin-bottom:14px">Your jobs are saved on this phone only, nowhere else. Once a week, make a backup: your phone asks where to put the file (Files, iCloud Drive, Google Drive, email). It is a spreadsheet (CSV) that opens in Excel. Keep it somewhere safe.</p>
+      <p class="hint" style="margin-bottom:14px">Your jobs and screenshots are saved on this phone only, nowhere else. Once a week, make a backup: your phone asks where to put the file (Files, iCloud Drive, Google Drive, email). With proof screenshots it is a ZIP, otherwise a spreadsheet (CSV) that opens in Excel. Keep it somewhere safe.</p>
       <div class="actions">
         <button class="btn primary" type="button" id="bk-btn">Download backup</button>
         <button class="btn ghost" type="button" id="bk-csv">Spreadsheet only (CSV, no screenshots)</button>
@@ -734,7 +734,7 @@ select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w
       <p class="hint" id="bk-msg" style="margin-top:10px"></p>
       <p class="hint" style="margin-top:6px">App version F1. Updates keep your jobs and rates.</p>
       <hr style="border:0;border-top:1px dashed var(--line);margin:18px 0">
-      <p class="hint" style="margin-bottom:10px">Restore: pick a backup file you saved earlier. Jobs already in the app are skipped, so nothing doubles up.</p>
+      <p class="hint" style="margin-bottom:10px">Restore: pick a backup file you downloaded earlier (ZIP or CSV). Jobs already in the app are skipped, so nothing doubles up. A ZIP also brings back the proof screenshots.</p>
       <input type="file" id="bk-file" accept=".zip,.csv,application/zip,text/csv" hidden>
       <button class="btn" type="button" id="bk-restore">Restore from backup (ZIP or CSV)</button>
       <p class="hint" id="bk-restore-msg" style="margin-top:10px"></p>
@@ -849,6 +849,7 @@ select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w
 <nav class="tabs" aria-label="Sections">
   <button type="button" data-v="jobs" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></svg>Jobs</button>
   <button type="button" data-v="new"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>New</button>
+  <button type="button" data-v="rides"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M14.6 9.3c-.5-.9-1.4-1.3-2.6-1.3-1.5 0-2.6.8-2.6 2 0 2.8 5.2 1.4 5.2 4.2 0 1.2-1.1 2-2.6 2-1.3 0-2.3-.5-2.8-1.5M12 6.6V8m0 8v1.4"/></svg>Earnings</button>
   <button type="button" data-v="report"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Report</button>
 </nav>
 
@@ -880,6 +881,27 @@ select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w
       } else plain();
     });
   } };
+
+  // Proof screenshots live in this browser (IndexedDB), never in the cloud.
+  var PROOF_URLS = {};
+  var LOCAL_ASSETS = {
+    open: function () { return new Promise(function (res, rej) { var q = indexedDB.open("cjl-proofs", 1); q.onupgradeneeded = function () { q.result.createObjectStore("f"); }; q.onsuccess = function () { res(q.result); }; q.onerror = function () { rej(q.error); }; }); },
+    load: function () {
+      return LOCAL_ASSETS.open().then(function (d) { return new Promise(function (res) {
+        var c = d.transaction("f", "readonly").objectStore("f").openCursor();
+        c.onsuccess = function () { var cur = c.result; if (cur) { PROOF_URLS[cur.key] = URL.createObjectURL(cur.value); cur.continue(); } else res(); };
+        c.onerror = function () { res(); };
+      }); }).catch(function () {});
+    },
+    upload: function (f) {
+      var id = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2)).replace(/-/g, ""), blob = f instanceof Blob ? f : new Blob([f]);
+      return LOCAL_ASSETS.open().then(function (d) { return new Promise(function (res, rej) {
+        var tx = d.transaction("f", "readwrite"); tx.objectStore("f").put(blob, id);
+        tx.oncomplete = function () { PROOF_URLS[id] = URL.createObjectURL(blob); res({ id: id, contentType: blob.type || "image/png", sizeBytes: blob.size }); };
+        tx.onerror = function () { var e = new Error("store"); e.code = "store_unavailable"; rej(e); };
+      }); });
+    }
+  };
   function $(s) { return document.querySelector(s); }
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 
@@ -1142,7 +1164,7 @@ select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w
     document.querySelectorAll("#jobForm .filled").forEach(function (n) { n.classList.remove("filled"); });
     $("#scanMsg").textContent = ""; $("#scanPaste").innerHTML = ""; updateDelayCalc(); updateFlight();
     state.proofs = []; renderProofs(); $("#proofPaste").innerHTML = "";
-    $("#proofMsg").textContent = "Screenshots are kept as evidence in the cloud and go into the backup file.";
+    $("#proofMsg").textContent = "Screenshots are kept on this phone as evidence and go into the backup file.";
     $("#f-date").value = todayStr();
     document.querySelector('input[name="jtype"][value="Hourly"]').checked = true;
     $("#stops").innerHTML = ""; $("#assigned").innerHTML = "";
@@ -2385,7 +2407,7 @@ select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w
 
   // ---------- proof screenshots ----------
   // Pictures live in the artifact's asset store; the job row keeps {id, name, type, size, addedOn, sha256}. Removing a proof from a job only unlinks it: the file is never deleted from storage.
-  function blobUrl(id) { return "/_blob/" + id; }
+  function blobUrl(id) { return PROOF_URLS[id] || ""; }
   function openProof(p) {
     $("#lbImg").src = blobUrl(p.id); $("#lbImg").alt = "Proof screenshot " + (p.name || "");
     $("#lbCap").textContent = (p.name || "Screenshot") + (p.addedOn ? " · added " + p.addedOn.slice(0, 10) : "");
@@ -2462,7 +2484,7 @@ select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w
     chain.then(function () {
       var cur = state.editing && state.jobs[state.editing];
       if (cur) persist(Object.assign({}, cur, { proofs: state.proofs.slice(), updated: Date.now() }));
-      msg.textContent = n + (n === 1 ? " screenshot" : " screenshots") + " saved to the cloud" + (cur ? " and attached to this job." : ". Tap Save job to attach " + (n === 1 ? "it" : "them") + " to this job.");
+      msg.textContent = n + (n === 1 ? " screenshot" : " screenshots") + " saved on this phone" + (cur ? " and attached to this job." : ". Tap Save job to attach " + (n === 1 ? "it" : "them") + " to this job.");
       if (smp && list[0]) readProof(list[0]);
     }, function (e) {
       msg.textContent = proofErr(e) + (n ? " " + n + " uploaded before the error." : "");
@@ -2713,21 +2735,11 @@ select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w
     if (awaiting) notes.push(awaiting + (awaiting === 1 ? " cancelled job is" : " cancelled jobs are") + " waiting for the company statement.");
     $("#dashNote").textContent = notes.join(" "); $("#dashNote").hidden = !notes.length;
     var rows = $("#dashRows"); rows.innerHTML = "";
-    // The usual sources get their own row; every other dispatcher is grouped under Others.
-    var src = { "Source A": { recv: 0, pend: 0, n: 0 }, "Source B": { recv: 0, pend: 0, n: 0 }, "Others": { recv: 0, pend: 0, n: 0, names: {} } };
-    Object.keys(byDisp).forEach(function (k) {
-      var key = /zzsourceazz/i.test(k) ? "Source A" : /zzsourcebzz/i.test(k) ? "Source B" : "Others", t = src[key], g = byDisp[k];
-      t.recv += g.recv; t.pend += g.pend; t.n += g.n; if (key === "Others") t.names[k] = g;
-    });
-    function srcRow(name, t, sub) { return grow(name, sub || (t.n ? t.n + (t.n === 1 ? " job" : " jobs") : "No jobs in this period"), fmtMoney(t.recv), t.pend > 0.004 ? fmtMoney(t.pend) + " pending" : ""); }
-    rows.append(srcRow("Source A", src["Source A"]), srcRow("Source B", src["Source B"]));
+    function srcRow(name, t) { return grow(name, t.n + (t.n === 1 ? " job" : " jobs"), fmtMoney(t.recv), t.pend > 0.004 ? fmtMoney(t.pend) + " pending" : ""); }
+    var dn = Object.keys(byDisp).sort(function (x, y) { return (byDisp[y].recv + byDisp[y].pend) - (byDisp[x].recv + byDisp[x].pend); });
+    if (!dn.length) rows.append(grow("No jobs in this period", "", ""));
+    dn.forEach(function (k) { rows.append(srcRow(k, byDisp[k])); });
     ["Uber", "Lyft"].forEach(function (c) { rows.append(grow(c, cnt[c] ? cnt[c] + (cnt[c] === 1 ? " week" : " weeks") : "No weeks counted yet", fmtMoney(tot[c]))); });
-    var oth = src["Others"], onames = Object.keys(oth.names).sort(function (a, c) { return (oth.names[c].recv + oth.names[c].pend) - (oth.names[a].recv + oth.names[a].pend); });
-    rows.append(grow("Others", oth.n ? oth.n + (oth.n === 1 ? " job" : " jobs") + " · " + onames.length + (onames.length === 1 ? " source" : " sources") + (othersOpen ? "" : " · tap to see each") : "No other sources in this period", fmtMoney(oth.recv), oth.pend > 0.004 ? fmtMoney(oth.pend) + " pending" : "", oth.n ? function () { othersOpen = !othersOpen; renderRides(); } : null));
-    if (othersOpen) onames.forEach(function (k) {
-      var g = oth.names[k], r = grow(k, g.n + (g.n === 1 ? " job" : " jobs"), fmtMoney(g.recv), g.pend > 0.004 ? fmtMoney(g.pend) + " pending" : "");
-      r.classList.add("sub"); rows.append(r);
-    });
     var list = $("#rideList"); list.innerHTML = "";
     if (!rs.length) list.append(grow("No rideshare weeks here", "Tap Add week after a week ends.", ""));
     rs.forEach(function (r) {
@@ -2809,7 +2821,7 @@ select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w
   function boot() {
     try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
     resetForm(); refreshLists(); updateBackupViews(); showView("jobs");
-    dl = LOCAL_DL; setSync("local"); $("#scanBox").hidden = true; renderBackup();
+    dl = LOCAL_DL; assetsNs = LOCAL_ASSETS; setSync("local"); $("#scanBox").hidden = true; renderBackup(); LOCAL_ASSETS.load().then(function () { refreshLists(); });
   }
   boot();
 })();
