@@ -1,0 +1,2817 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#F2F2F7">
+<title>Chauffeur Job Log</title>
+<style>
+/* Design: an iPhone-native look. System type (SF Pro on iPhone), grouped surfaces on a quiet background, one blue accent, semantic green / orange / red for money states, frosted tab bar, large screen titles. */
+:root {
+  --bg: #F2F2F7;
+  --surface: #FFFFFF;
+  --fill: #F2F2F7;
+  --ink: #1C1C1E;
+  --muted: #6C6C70;
+  --line: #E3E3E8;
+  --accent: #2F6B5C;
+  --accent-ink: #FFFFFF;
+  --accent-tint: rgba(47, 107, 92, .12);
+  --ok: #1F8A3E;
+  --ok-tint: rgba(52, 199, 89, .17);
+  --warn: #B35C00;
+  --warn-tint: rgba(255, 149, 0, .17);
+  --danger: #D1281C;
+  --danger-tint: rgba(255, 59, 48, .13);
+  --violet: #5856D6;
+  --violet-tint: rgba(88, 86, 214, .13);
+  --sel: #E3ECE7;
+  --sel-ink: #1F4B3F;
+  --hr-bg: #E3ECE7;
+  --hr-ink: #2F6B5C;
+  --tr-bg: #E8E9F3;
+  --tr-ink: #4C5488;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 6px 18px rgba(0, 0, 0, .04);
+  --brass: var(--warn);
+  --brass-soft: var(--warn-tint);
+  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: var(--font-body);
+  --font-mono: var(--font-body);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #000000; --surface: #1C1C1E; --fill: #2C2C2E; --ink: #F5F5F7; --muted: #9A9AA1; --line: #38383A;
+    --accent: #6BB7A3; --accent-ink: #08120F; --accent-tint: rgba(107, 183, 163, .2);
+    --ok: #32D74B; --ok-tint: rgba(48, 209, 88, .2); --warn: #FF9F0A; --warn-tint: rgba(255, 159, 10, .2);
+    --danger: #FF6961; --danger-tint: rgba(255, 69, 58, .2); --violet: #8E8CFF; --violet-tint: rgba(125, 122, 255, .2);
+    --sel: #27352F; --sel-ink: #C4E6D8; --hr-bg: #27352F; --hr-ink: #8FCDB8; --tr-bg: #2B2D44; --tr-ink: #AEB4F0; --shadow: none; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #000000; --surface: #1C1C1E; --fill: #2C2C2E; --ink: #F5F5F7; --muted: #9A9AA1; --line: #38383A;
+  --accent: #6BB7A3; --accent-ink: #08120F; --accent-tint: rgba(107, 183, 163, .2);
+  --ok: #32D74B; --ok-tint: rgba(48, 209, 88, .2); --warn: #FF9F0A; --warn-tint: rgba(255, 159, 10, .2);
+  --danger: #FF6961; --danger-tint: rgba(255, 69, 58, .2); --violet: #8E8CFF; --violet-tint: rgba(125, 122, 255, .2);
+  --sel: #27352F; --sel-ink: #C4E6D8; --hr-bg: #27352F; --hr-ink: #8FCDB8; --tr-bg: #2B2D44; --tr-ink: #AEB4F0; --shadow: none; color-scheme: dark;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+  background: var(--bg); color: var(--ink); font: 400 17px/1.4 var(--font-body); -webkit-font-smoothing: antialiased;
+  padding-block: 0 104px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.wrap { max-width: 640px; margin: 0 auto; }
+.stickytop { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 9; background: var(--bg); }
+header.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 12px 10px; }
+h1 { font: 700 32px/1.1 var(--font-body); letter-spacing: -.02em; margin: 0; }
+h2 { font: 600 20px/1.2 var(--font-body); letter-spacing: -.01em; margin: 0; }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px; font: 500 12px/1 var(--font-body); padding: 8px 11px; border-radius: 999px;
+  background: var(--surface); color: var(--muted); white-space: nowrap; box-shadow: var(--shadow); cursor: pointer;
+}
+.chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); display: block; }
+.chip[data-s="synced"] i { background: var(--ok); }
+.chip[data-s="offline"] i, .chip[data-s="local"] i { background: var(--warn); }
+.view[hidden] { display: none; }
+.card { background: var(--surface); border-radius: 18px; padding: 18px 16px; box-shadow: var(--shadow); }
+.notice { background: var(--warn-tint); color: var(--ink); border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; display: flex; gap: 12px; align-items: center; justify-content: space-between; font-size: 15px; }
+.notice button { flex: none; }
+form { display: grid; gap: 16px; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.row > * { min-width: 0; }
+@media (max-width: 380px) { .row { grid-template-columns: 1fr; } }
+label.f { display: grid; gap: 6px; font: 500 13px/1.2 var(--font-body); color: var(--muted); }
+input, select, textarea, button { font: inherit; color: inherit; }
+input[type=text], input[type=date], input[type=time], input[type=search], input[type=number], textarea, select {
+  width: 100%; min-height: 48px; padding: 12px 14px; background: var(--fill); border: 0; border-radius: 12px;
+  font: 400 17px/1.3 var(--font-body); color: var(--ink); -webkit-appearance: none; appearance: none;
+}
+input[type=date], input[type=time] { text-align: left; }
+input[type=search] { background: var(--surface); box-shadow: var(--shadow); }
+::placeholder { color: var(--muted); opacity: .8; }
+textarea { min-height: 84px; resize: vertical; }
+input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 2px; border-radius: 11px; background: var(--fill); }
+.seg label {
+  position: relative; text-align: center; padding: 10px 6px; cursor: pointer; border-radius: 9px; font: 600 15px/1.15 var(--font-body); color: var(--muted);
+  display: flex; align-items: center; justify-content: center; min-height: 40px;
+}
+.seg input { position: absolute; opacity: 0; inset: 0; }
+.seg label:has(input:checked) { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0, 0, 0, .16); }
+.seg label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 1px; }
+.seg.three { grid-template-columns: repeat(3, 1fr); }
+.seg.three label { font-size: 13px; padding: 8px 4px; }
+.segc { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 2px; padding: 2px; border-radius: 11px; background: var(--fill); }
+.segc button { border: 0; background: transparent; border-radius: 9px; min-height: 36px; font: 600 14px var(--font-body); color: var(--muted); cursor: pointer; }
+.segc button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0, 0, 0, .16); }
+.stops { display: grid; gap: 10px; }
+.stop { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; }
+.stop.tm { grid-template-columns: auto 1fr 112px auto; }
+.stop span { font: 600 12px var(--font-body); color: var(--muted); width: 52px; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 50px; padding: 10px 18px; border-radius: 14px; border: 0;
+  background: var(--fill); color: var(--ink); font: 600 17px/1.2 var(--font-body); cursor: pointer; text-decoration: none; text-align: center;
+}
+.btn:active { opacity: .65; }
+.btn:disabled { opacity: .4; cursor: default; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); }
+.btn.ghost { background: transparent; }
+.btn.danger { background: var(--danger-tint); color: var(--danger); }
+.btn.small { min-height: 40px; padding: 8px 14px; font-size: 15px; border-radius: 12px; }
+.scan { display: grid; gap: 10px; padding: 14px; border-radius: 16px; background: var(--accent-tint); }
+.cap { font: 600 12px/1 var(--font-body); letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.scan .cap { color: var(--accent); margin-bottom: 0; }
+.paste { min-height: 56px; padding: 15px 14px; border-radius: 12px; background: var(--fill); color: var(--muted); overflow: hidden; max-height: 56px; font-size: 15px; }
+.paste:empty::before { content: attr(data-ph); }
+.scan .paste { background: var(--surface); }
+.filled { box-shadow: 0 0 0 2px var(--warn) !important; }
+.delaybox { display: grid; gap: 12px; padding: 14px; border-radius: 16px; background: var(--danger-tint); }
+.delaybox .cap { color: var(--danger); margin-bottom: 0; }
+.chk { display: flex; gap: 12px; align-items: center; min-height: 50px; padding: 8px 14px; border-radius: 12px; background: var(--fill); cursor: pointer; font-weight: 500; }
+.chk input { width: 24px; height: 24px; flex: none; accent-color: var(--accent); }
+.unrep { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; border: 0; border-radius: 14px; background: var(--surface); color: var(--ink); padding: 12px 14px; margin-bottom: 10px; font-weight: 500; font-size: 15px; cursor: pointer; box-shadow: var(--shadow); }
+.unrep::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--danger); flex: none; }
+.unrep.soft::before { background: var(--warn); }
+.navbar { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 16px 12px; }
+#navRow.navbar { padding: 0; }
+.navlink { display: inline-flex; align-items: center; min-height: 36px; padding: 6px 14px; border-radius: 999px; background: var(--fill); color: var(--ink); font-weight: 600; font-size: 14px; text-decoration: none; }
+.delaycall { border-radius: 16px; padding: 14px 16px; margin: 0 0 14px; background: var(--danger-tint); }
+.delaycall h3 { margin: 0 0 4px; font: 700 17px/1.2 var(--font-body); color: var(--danger); }
+.delaycall .rjob { border-bottom-color: transparent; }
+.delaycall .why { color: var(--danger); font-size: 14px; font-weight: 600; }
+.actions { display: grid; gap: 10px; }
+.hint { font-size: 13px; line-height: 1.4; color: var(--muted); margin: 0; }
+.err { color: var(--danger); font-size: 14px; min-height: 1em; margin: 0; }
+.caption { font-size: 13px; color: var(--muted); margin: 2px 4px 12px; font-variant-numeric: tabular-nums; }
+
+.sum { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
+.sum div { background: var(--surface); border-radius: 16px; padding: 14px; min-width: 0; box-shadow: var(--shadow); }
+.sum b { display: block; font: 700 24px/1.15 var(--font-body); letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+.sum small { font: 500 13px var(--font-body); color: var(--muted); }
+.tools { display: grid; gap: 10px; margin-bottom: 12px; }
+.filters { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
+.filters::-webkit-scrollbar { display: none; }
+.pill { flex: none; min-height: 36px; padding: 0 14px; border-radius: 999px; border: 0; background: var(--surface); color: var(--ink); cursor: pointer; font: 500 15px var(--font-body); white-space: nowrap; box-shadow: var(--shadow); }
+.pill[aria-pressed="true"] { background: var(--sel); color: var(--sel-ink); font-weight: 600; box-shadow: inset 0 0 0 1.5px var(--sel-ink); }
+.day { font: 600 13px/1 var(--font-body); letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin: 20px 4px 8px; }
+.job { display: grid; gap: 6px; width: 100%; text-align: left; background: transparent; border: 0; padding: 14px 16px 12px; cursor: pointer; }
+.job .l1 { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.job .time { font: 600 17px var(--font-body); font-variant-numeric: tabular-nums; }
+.job .price { font: 600 17px var(--font-body); font-variant-numeric: tabular-nums; color: var(--warn); }
+.job .price.ok { color: var(--ok); }
+.job .route { overflow-wrap: anywhere; font-size: 16px; }
+.job .route .arrow { color: var(--muted); padding: 0 5px; }
+.job .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 13px; color: var(--muted); }
+.tag { font: 600 12px/1 var(--font-body); padding: 5px 9px; border-radius: 999px; border: 0; background: var(--fill); color: var(--muted); }
+.tag.h { background: var(--fill); color: var(--ink); }
+.tag.t { background: var(--fill); color: var(--ink); }
+.tag.p { background: var(--ok-tint); color: var(--ok); }
+.tag.w, .tag.c { background: var(--warn-tint); color: var(--warn); }
+.tag.d { background: var(--danger-tint); color: var(--danger); }
+.tag.n { background: var(--fill); color: var(--muted); }
+.num { font-variant-numeric: tabular-nums; }
+.empty { text-align: center; padding: 40px 12px; color: var(--muted); }
+.empty h2 { color: var(--ink); margin-bottom: 8px; }
+.jobwrap { background: var(--surface); border-radius: 18px; margin-bottom: 12px; overflow: hidden; box-shadow: var(--shadow); }
+.jobwrap.late { box-shadow: var(--shadow), inset 0 0 0 1.5px var(--danger); }
+.jobwrap.cxl { box-shadow: var(--shadow), inset 0 0 0 1px var(--warn); }
+.jobwrap.cxl.free { box-shadow: var(--shadow); opacity: .85; }
+.jobbar { display: grid; grid-template-columns: 1fr 1fr; border-top: .5px solid var(--line); }
+.jobbar button { border: 0; background: transparent; padding: 10px 16px; min-height: 46px; font-weight: 600; font-size: 15px; cursor: pointer; }
+.jobbar .jobpay { color: var(--accent); text-align: left; border-right: .5px solid var(--line); }
+.jobbar .jobdel { color: var(--danger); text-align: right; }
+
+.big { font: 700 40px/1 var(--font-body); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.kv { display: grid; gap: 0; margin: 6px 0 14px; }
+.kv div { display: flex; justify-content: space-between; gap: 12px; border-bottom: .5px solid var(--line); padding: 12px 0; }
+.kv span:first-child { color: var(--muted); }
+hr { border: 0; border-top: .5px solid var(--line); margin: 20px 0; }
+
+nav.tabs {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 9; display: grid; grid-template-columns: repeat(5, 1fr);
+  padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
+  background: var(--surface); border-top: .5px solid var(--line);
+}
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  nav.tabs { background: color-mix(in srgb, var(--surface) 82%, transparent); -webkit-backdrop-filter: saturate(180%) blur(22px); backdrop-filter: saturate(180%) blur(22px); }
+}
+nav.tabs button { display: grid; justify-items: center; align-content: center; gap: 3px; min-height: 52px; border: 0; background: transparent; color: var(--muted); font: 500 10px/1.1 var(--font-body); cursor: pointer; padding: 4px 0 2px; }
+nav.tabs svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+nav.tabs button[aria-current="page"] { color: var(--accent); }
+#toast {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(92px + env(safe-area-inset-bottom, 0px)); z-index: 50;
+  background: var(--ink); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-size: 15px; max-width: calc(100% - 32px); text-align: center; box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+}
+@media (prefers-reduced-motion: no-preference) { #toast { transition: opacity .2s; } }
+.pkrow { border-bottom: .5px solid var(--line); padding: 12px 0; }
+.pkhead { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.pkhead b { font-variant-numeric: tabular-nums; color: var(--accent); }
+.rrow { display: grid; grid-template-columns: 1fr 40px 48px 48px 72px; gap: 8px; padding: 10px 0; border-bottom: .5px solid var(--line); font-size: 15px; }
+.rrow > span { min-width: 0; overflow-wrap: anywhere; }
+.rrow > span:nth-child(n+2) { text-align: right; font-variant-numeric: tabular-nums; }
+.rhead { font: 600 12px var(--font-body); letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.rjob { display: block; width: 100%; text-align: left; background: transparent; border: 0; border-bottom: .5px solid var(--line); padding: 12px 0; cursor: pointer; }
+.rjob .l1 { display: flex; justify-content: space-between; gap: 10px; font: 600 15px var(--font-body); font-variant-numeric: tabular-nums; }
+.rjob .route { font-size: 14px; color: var(--muted); overflow-wrap: anywhere; }
+
+/* proofs and cancelled jobs */
+[hidden] { display: none !important; }
+.cxlbox { display: grid; gap: 12px; padding: 14px; border-radius: 16px; background: var(--warn-tint); }
+.cxlbox .cap { color: var(--warn); margin-bottom: 0; }
+.proofs { display: flex; flex-wrap: wrap; gap: 10px; }
+.proofs:empty { display: none; }
+.proof { display: grid; gap: 6px; width: 92px; }
+.proof .btn { min-height: 36px; padding: 4px 8px; font-size: 13px; }
+.thumb { display: block; padding: 0; width: 92px; height: 92px; border: 0; border-radius: 12px; overflow: hidden; background: var(--fill); color: var(--muted); font-size: 12px; cursor: pointer; }
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.thumb.sm { width: 56px; height: 56px; border-radius: 10px; }
+.proofstrip { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 4px 16px 12px; }
+.proofstrip small { color: var(--muted); font-size: 13px; }
+
+/* rideshare and earnings */
+.stepper { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; gap: 8px; margin: 14px 0 12px; }
+.step { width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--surface); color: var(--accent); cursor: pointer; display: grid; place-items: center; box-shadow: var(--shadow); }
+.step svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.step:disabled { opacity: .3; cursor: default; }
+.stepmid { text-align: center; min-width: 0; }
+.stepmid b { display: block; font: 600 19px/1.2 var(--font-body); letter-spacing: -.01em; }
+.stepmid small { display: block; font-size: 13px; color: var(--muted); min-height: 1em; }
+.hero { background: var(--surface); border-radius: 22px; padding: 20px 18px 16px; box-shadow: var(--shadow); margin-bottom: 14px; }
+.hero .lab { font: 600 12px/1 var(--font-body); letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.hero .total { font: 700 46px/1.05 var(--font-body); letter-spacing: -.03em; font-variant-numeric: tabular-nums; margin: 8px 0 14px; }
+.trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding-top: 14px; border-top: .5px solid var(--line); }
+.trio div { min-width: 0; }
+.trio small { display: block; font-size: 12px; color: var(--muted); }
+.trio b { display: block; font: 600 17px/1.3 var(--font-body); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.trio .pend b { color: var(--warn); }
+.group { background: var(--surface); border-radius: 18px; overflow: hidden; box-shadow: var(--shadow); margin-bottom: 14px; }
+.grow { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 13px 16px; min-height: 54px; border-top: .5px solid var(--line); width: 100%; text-align: left; background: transparent; border-left: 0; border-right: 0; border-bottom: 0; color: inherit; font: inherit; }
+.grow:first-child { border-top: 0; }
+button.grow { cursor: pointer; }
+.grow .gl { min-width: 0; }
+.grow .gl b { display: block; font-weight: 600; font-size: 17px; overflow-wrap: anywhere; }
+.grow .gl small { display: block; color: var(--muted); font-size: 13px; }
+.grow .gv { font: 600 17px var(--font-body); font-variant-numeric: tabular-nums; text-align: right; flex: none; }
+.grow .gv small { display: block; color: var(--warn); font-size: 13px; font-weight: 600; }
+.hero { background: var(--accent); color: var(--accent-ink); border-radius: 18px; padding: 18px 16px; margin: 22px 0 12px; box-shadow: var(--shadow); }
+.hero .hl { font: 600 12px/1 var(--font-body); letter-spacing: .06em; text-transform: uppercase; opacity: .85; }
+.hero .hv { font: 700 48px/1.1 var(--font-body); font-variant-numeric: tabular-nums; margin: 8px 0 4px; }
+.hero .hs { font-size: 14px; opacity: .92; }
+.warnbox { background: var(--warn-tint); border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; font-size: 15px; }
+.warnbox b { display: block; color: var(--warn); margin-bottom: 2px; }
+.grow.sub { background: var(--fill); padding-left: 30px; }
+.grow.key { background: var(--sel); }
+.grow.key .gl b, .grow.key .gv { color: var(--sel-ink); font-size: 20px; }
+.ghead { display: flex; align-items: center; justify-content: space-between; margin: 20px 4px 8px; }
+.ghead .cap { margin: 0; }
+#rideSheet, #filterSheet, #jobSheet { position: fixed; inset: 0; z-index: 40; background: rgba(0, 0, 0, .38); display: grid; align-items: end; }
+.sheet {
+  background: var(--bg); border-radius: 22px 22px 0 0; max-height: 94%; overflow-y: auto; width: 100%; max-width: 640px; margin: 0 auto;
+  padding: 10px max(16px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+}
+.grab { width: 38px; height: 5px; border-radius: 3px; background: var(--line); margin: 0 auto 12px; }
+.sheethead { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.sheethead button { border: 0; background: transparent; color: var(--accent); font: 500 17px var(--font-body); padding: 6px 2px; cursor: pointer; }
+
+#delDlg, #okDlg { position: fixed; inset: 0; z-index: 60; background: rgba(0, 0, 0, .4); display: grid; align-items: center; padding: 16px; overflow-y: auto; }
+.dlgcard { background: var(--surface); border-radius: 20px; padding: 20px 16px 16px; display: grid; gap: 14px; max-width: 420px; width: 100%; margin: 0 auto; box-shadow: 0 20px 60px rgba(0, 0, 0, .3); }
+#delYes:disabled { opacity: .4; }
+#lightbox { position: fixed; inset: 0; z-index: 55; background: rgba(0, 0, 0, .94); display: grid; grid-template-rows: auto 1fr; padding: max(12px, env(safe-area-inset-top, 0px)) 12px 12px; gap: 10px; }
+#lightbox .lbbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #F5F5F7; font: 500 13px var(--font-body); }
+#lightbox img { width: 100%; height: 100%; min-height: 0; object-fit: contain; }
+select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1.5l5 5 5-5' fill='none' stroke='%238E8E93' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/></svg>"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 38px; }
+.sheet .filters { flex-wrap: wrap; overflow: visible; }
+.searchrow { display: grid; grid-template-columns: 1fr 48px; gap: 10px; }
+.iconbtn { position: relative; width: 48px; height: 48px; border: 0; border-radius: 12px; background: var(--surface); color: var(--ink); display: grid; place-items: center; box-shadow: var(--shadow); cursor: pointer; }
+.iconbtn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.iconbtn i { position: absolute; top: 9px; right: 9px; width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
+.jrow { display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: center; width: 100%; text-align: left; background: transparent; border: 0; border-top: .5px solid var(--line); padding: 12px 16px; min-height: 66px; cursor: pointer; color: inherit; font: inherit; }
+.group > .jrow:first-child { border-top: 0; }
+.tbadge { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; flex: none; }
+.tbadge svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tbadge.h { background: var(--hr-bg); color: var(--hr-ink); }
+.tbadge.t { background: var(--tr-bg); color: var(--tr-ink); }
+.tbadge.off { opacity: .45; }
+.tbadge.big { width: 48px; height: 48px; border-radius: 14px; }
+.jbody { display: grid; gap: 2px; min-width: 0; }
+.jtitle { font-size: 16px; line-height: 1.3; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.jnote { font-size: 13px; color: var(--muted); }
+.jnote.late { color: var(--danger); font-weight: 600; }
+.jprice { font: 600 15px/1.25 var(--font-body); text-align: right; color: var(--warn); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.jprice.ok { color: var(--ok); }
+.jprice.mute { color: var(--muted); }
+.jhead { display: flex; align-items: center; gap: 12px; }
+.jhead .jbody { flex: 1; }
+.jhead b { font-size: 20px; letter-spacing: -.01em; }
+.jhead small { color: var(--muted); font-size: 14px; }
+#jobBody { display: grid; gap: 14px; }
+.drow { display: grid; gap: 2px; padding: 12px 16px; border-top: .5px solid var(--line); }
+.group > .drow:first-child { border-top: 0; }
+.drow small { font: 500 12px var(--font-body); color: var(--muted); }
+.drow span { white-space: pre-line; overflow-wrap: anywhere; font-size: 16px; }
+.jobcard { background: var(--surface); border-radius: 18px; padding: 14px 16px 10px; margin-bottom: 12px; box-shadow: var(--shadow); display: grid; gap: 12px; cursor: pointer; }
+.jobcard.off .tbadge { opacity: .45; }
+.jtop { display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: center; }
+.jmain { min-width: 0; }
+.jtimew { display: grid; gap: 2px; margin-top: -4px; }
+.jtype { font: 600 17px/1.25 var(--font-body); display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 8px; }
+.jmiles { font: 600 14px var(--font-body); font-variant-numeric: tabular-nums; }
+.jmiles.none { font-weight: 400; color: var(--muted); }
+.jnum { font: 500 13px var(--font-body); color: var(--muted); font-variant-numeric: tabular-nums; }
+.jtime { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.jpay { display: flex; align-items: center; gap: 10px; }
+.tick { width: 34px; height: 34px; padding: 0; border-radius: 50%; border: 2px solid var(--muted); background: transparent; color: transparent; display: grid; place-items: center; cursor: pointer; flex: none; }
+.tick svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.tick.on { background: var(--ok); border-color: var(--ok); color: #FFFFFF; }
+.jmeta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: 14px; color: var(--muted); }
+.fchip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 999px; background: var(--fill); color: var(--ink); font-weight: 600; font-size: 13px; text-decoration: none; }
+.fchip svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.rt { position: relative; display: grid; gap: 12px; }
+.rt::before { content: ""; position: absolute; left: 4px; top: 16px; bottom: 16px; width: 2px; background: var(--line); }
+.rtrow { position: relative; display: grid; grid-template-columns: 10px 1fr auto; gap: 12px; align-items: center; }
+.rtrow .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--surface); border: 2px solid var(--muted); z-index: 1; }
+.rtrow:last-child .dot { background: var(--muted); }
+.rtxt { min-width: 0; }
+.rtxt small { display: block; font-size: 12px; color: var(--muted); }
+.rtxt span { display: block; font-size: 15px; line-height: 1.3; overflow-wrap: anywhere; }
+.go { width: 38px; height: 38px; border-radius: 50%; background: var(--fill); color: var(--ink); display: grid; place-items: center; text-decoration: none; }
+.go svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.jfoot { display: flex; justify-content: flex-end; border-top: .5px solid var(--line); margin: 0 -16px; padding: 0 16px; }
+.jdet { border: 0; background: none; color: var(--muted); font: 600 14px var(--font-body); padding: 10px 0 4px; cursor: pointer; }
+.jdet::after { content: " \203A"; }
+</style>
+
+<div class="wrap">
+  <div class="stickytop">
+  <header class="top">
+    <h1 id="screenTitle">Jobs</h1>
+    <span class="chip" id="sync" data-s="local"><i></i><span id="syncText">Starting</span></span>
+  </header>
+
+  <div id="backupNotice" class="notice" hidden>
+    <span id="backupNoticeText"></span>
+    <button class="btn small primary" type="button" id="noticeGo">Back up</button>
+  </div>
+  </div>
+
+  <section class="view" id="v-new" hidden>
+    <form id="jobForm" class="card" autocomplete="off" novalidate>
+      <h2 id="formTitle">New job</h2>
+      <div id="scanBox" class="scan" hidden>
+        <div class="cap">Fill from a screenshot</div>
+        <div id="scanPaste" class="paste" contenteditable="true" role="textbox" aria-label="Paste a screenshot here" data-ph="Paste a screenshot here (tap and hold, then Paste)"></div>
+        <button class="btn small ghost" type="button" id="scanPick">Choose a screenshot</button>
+        <input type="file" id="scanFile" accept="image/*" hidden>
+        <p class="hint" id="scanMsg" role="status"></p>
+      </div>
+      <div class="seg" role="radiogroup" aria-label="Job type">
+        <label><input type="radio" name="jtype" value="Hourly" checked>Hourly</label>
+        <label><input type="radio" name="jtype" value="Transfer">Transfer</label>
+      </div>
+      <div class="seg three" role="radiogroup" aria-label="Job outcome">
+        <label><input type="radio" name="jstatus" value="done" checked>Completed</label>
+        <label><input type="radio" name="jstatus" value="cxl_bill">Cancelled, billable</label>
+        <label><input type="radio" name="jstatus" value="cxl_free">Cancelled, no charge</label>
+      </div>
+      <div class="row">
+        <label class="f" for="f-date">Date<input type="date" id="f-date" required></label>
+        <label class="f" for="f-job">Job #<input type="text" id="f-job" inputmode="text" placeholder="e.g. 48213"></label>
+      </div>
+      <div class="row">
+        <label class="f" for="f-start">Start time<input type="time" id="f-start" required></label>
+        <label class="f" for="f-end" id="endWrap"><span id="endLab">End time</span><input type="time" id="f-end"></label>
+      </div>
+      <div class="row">
+        <label class="f" for="f-disp">Dispatcher<input type="text" id="f-disp" list="dl-disp" placeholder="Name or title"></label>
+        <label class="f" for="f-veh">Vehicle requested
+          <select id="f-veh"><option value="">Choose</option><option value="SUV">SUV</option><option value="Sedan">Sedan</option></select>
+        </label>
+      </div>
+      <input type="hidden" id="f-src" value="">
+      <div class="row">
+        <label class="f" for="f-flight">Flight number<input type="text" id="f-flight" placeholder="e.g. AA 115" autocapitalize="characters" autocomplete="off"></label>
+        <div class="f"><span>&nbsp;</span><a class="btn small ghost" id="flightLink" target="_blank" rel="noopener" hidden>Flight status</a></div>
+      </div>
+      <label class="f" for="f-pick">Pick-up location<input type="text" id="f-pick"></label>
+      <div id="stopsWrap" class="stops-wrap">
+        <div class="cap">Stops between pick-up and drop-off</div>
+        <div class="stops" id="stops"></div>
+        <button class="btn small ghost" type="button" id="addStop" style="margin-top:8px">+ Add stop</button>
+      </div>
+      <label class="f" for="f-drop">Drop-off location<input type="text" id="f-drop"></label>
+      <label class="chk" for="f-round" id="roundWrap"><input type="checkbox" id="f-round"><span>Round trip (returns to the pick-up)</span></label>
+      <div id="navRow" class="navbar" hidden></div>
+      <div id="assignedWrap" class="stops-wrap">
+        <div class="cap">Jobs assigned during these hours</div>
+        <div class="stops" id="assigned"></div>
+        <button class="btn small ghost" type="button" id="addAssigned" style="margin-top:8px">+ Add job number</button>
+      </div>
+      <div id="milesWrap" class="row">
+        <label class="f" for="f-miles">Distance (miles)<input type="number" id="f-miles" inputmode="decimal" step="0.1" min="0" placeholder="Pick-up to drop-off"></label>
+        <div class="f"><span>&nbsp;</span><a class="btn small ghost" id="mapsLink" target="_blank" rel="noopener">Open in Maps</a></div>
+        <p class="hint" id="milesTip" style="grid-column:1/-1"></p>
+      </div>
+      <div id="delayWrap" class="delaybox">
+        <div class="cap">Delay (transfers)</div>
+        <div class="row">
+          <label class="f" for="f-pob">POB time (passenger on board)<input type="time" id="f-pob"></label>
+          <label class="f" for="f-delay">Delay (minutes)<input type="number" id="f-delay" inputmode="numeric" step="1" min="0" placeholder="Auto from POB"></label>
+        </div>
+        <p class="hint" id="delayCalc" role="status">Enter the POB time and the delay is worked out for you. Over 30 minutes is flagged as a delay.</p>
+        <label class="f" for="f-delaywhy">Reason<input type="text" id="f-delaywhy" list="dl-why" placeholder="e.g. Flight late"></label>
+        <label class="chk" for="f-reported"><input type="checkbox" id="f-reported"><span>Delay reported to the dispatcher (same day)</span></label>
+      </div>
+      <div id="cxlWrap" class="cxlbox" hidden>
+        <div class="cap">Cancellation</div>
+        <div class="row">
+          <label class="f" for="f-enroute">En route since<input type="time" id="f-enroute"></label>
+          <label class="f" for="f-cxlby">Cancelled by<input type="text" id="f-cxlby" list="dl-cxlby" placeholder="e.g. Passenger"></label>
+        </div>
+        <div class="row">
+          <label class="f" for="f-cxldate">Told on<input type="date" id="f-cxldate"></label>
+          <label class="f" for="f-cxltime">Time told<input type="time" id="f-cxltime"></label>
+        </div>
+        <label class="f" for="f-cxlnote">What the company said<textarea id="f-cxlnote" placeholder="e.g. Cancelled by passenger, billable. Told by dispatcher at 6:40 PM"></textarea></label>
+        <div hidden>
+          <div class="cap" style="margin-bottom:8px">Proof screenshots</div>
+          <div class="proofs" id="proofs"></div>
+          <div id="proofTools" class="actions" style="margin-top:10px">
+            <div id="proofPaste" class="paste" contenteditable="true" role="textbox" aria-label="Paste a proof screenshot here" data-ph="Paste a screenshot here (tap and hold, then Paste)"></div>
+            <button class="btn small" type="button" id="proofPick">Add proof screenshot</button>
+            <input type="file" id="proofFile" accept="image/*" multiple hidden>
+          </div>
+          <p class="hint" id="proofMsg" role="status" style="margin-top:8px">Screenshots are kept as evidence in the cloud and go into the backup file.</p>
+        </div>
+      </div>
+      <datalist id="dl-cxlby"><option value="Passenger"><option value="Client / company"><option value="Dispatcher"></datalist>
+      <datalist id="dl-why"><option value="Flight delayed"><option value="Passenger late"><option value="Baggage / customs"><option value="Traffic"><option value="Extra stop"><option value="Wrong pick-up info"></datalist>
+      <p class="hint" id="milesEstNote" hidden style="margin:-6px 0 0">This distance is an estimate. Check it in Maps, or edit the number to replace it.</p>
+      <div id="payWrap" style="display:grid;gap:14px">
+      <label class="f" for="f-price"><span id="priceLabTxt">Agreed or offered price ($)</span><input type="number" id="f-price" inputmode="decimal" step="0.01" min="0" placeholder="Leave blank if none"></label>
+      <p class="hint" id="priceHint" hidden style="margin:-6px 0 0">The company sends the rate on the statement, usually about 30 days later. Leave this blank until then, then edit the job and enter the amount.</p>
+      <div class="seg" role="radiogroup" aria-label="Payment status">
+        <label><input type="radio" name="pay" value="pending" checked>Pending</label>
+        <label><input type="radio" name="pay" value="paid">Paid</label>
+      </div>
+      <div class="row" id="paidFields" hidden>
+        <label class="f" for="f-recv">Amount received ($)<input type="number" id="f-recv" inputmode="decimal" step="0.01" min="0" placeholder="Actual amount"></label>
+        <label class="f" for="f-paiddate">Date received<input type="date" id="f-paiddate"></label>
+      </div>
+      </div>
+      <label class="f" for="f-notes">Notes<textarea id="f-notes"></textarea></label>
+      <p class="err" id="formErr" role="alert"></p>
+      <div class="actions">
+        <button class="btn primary" type="submit" id="saveBtn">Save job</button>
+        <button class="btn ghost" type="button" id="cancelBtn" hidden>Cancel</button>
+        <button class="btn danger" type="button" id="delBtn" hidden>Delete job</button>
+      </div>
+    </form>
+    <datalist id="dl-disp"></datalist>
+  </section>
+
+  <section class="view" id="v-jobs">
+    <p class="caption" id="sum"></p>
+    <div class="tools">
+      <div class="searchrow">
+        <input type="search" id="q" placeholder="Search" aria-label="Search jobs">
+        <button class="iconbtn" type="button" id="filterBtn" aria-label="Filters"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M18 7h2M4 17h2M11 17h9"/><circle cx="15.5" cy="7" r="2.2"/><circle cx="8.5" cy="17" r="2.2"/></svg><i id="filterDot" hidden></i></button>
+      </div>
+    </div>
+    <div id="list"></div>
+  </section>
+
+  <section class="view" id="v-rides" hidden>
+    <div class="segc" id="dashMode" role="group" aria-label="Period">
+      <button type="button" data-m="week" aria-pressed="true">Week</button>
+      <button type="button" data-m="month" aria-pressed="false">Month</button>
+      <button type="button" data-m="year" aria-pressed="false">Year</button>
+      <button type="button" data-m="all" aria-pressed="false">All</button>
+    </div>
+    <div class="stepper" id="dashStepper">
+      <button class="step" type="button" id="dashPrev" aria-label="Earlier period"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <div class="stepmid"><b id="dashTitle"></b><small id="dashSub"></small></div>
+      <button class="step" type="button" id="dashNext" aria-label="Later period"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+    </div>
+    <div class="hero">
+      <div class="lab">Earned</div>
+      <div class="total" id="dashTotal">$0.00</div>
+      <div class="trio">
+        <div><small>Dispatchers</small><b id="dashJobs">$0.00</b></div>
+        <div><small>Rideshare</small><b id="dashRide">$0.00</b></div>
+        <div class="pend"><small>Pending</small><b id="dashPend">$0.00</b></div>
+      </div>
+      <p class="hint" id="dashNote" style="margin-top:12px" hidden></p>
+    </div>
+    <div class="cap" style="margin:0 4px 8px">By source</div>
+    <div class="group" id="dashRows"></div>
+    <div class="ghead"><div class="cap">Rideshare weeks</div><button class="btn small" type="button" id="rideAdd">Add week</button></div>
+    <div class="group" id="rideList"></div>
+    <p class="hint" style="margin:8px 4px 0">A rideshare week counts in the period it ends. An Uber week that ends on a Monday counts in the week before.</p>
+  </section>
+
+  <section class="view" id="v-report" hidden>
+    <div class="group" style="margin-bottom:14px">
+      <button class="grow" type="button" id="r-gobackup"><div class="gl"><b>Backup and restore</b><small id="r-bklast">Last file backup: never</small></div><span class="gv">&rsaquo;</span></button>
+    </div>
+    <div class="group" style="margin-bottom:14px">
+      <button class="grow" type="button" id="r-gocalc"><div class="gl"><b>Price calculator</b><small>Work out a price for an offer</small></div><span class="gv">&rsaquo;</span></button>
+      <button class="grow" type="button" id="r-gorates"><div class="gl"><b>Rate stats</b><small>What your jobs paid per hour and per mile</small></div><span class="gv">&rsaquo;</span></button>
+    </div>
+    <div class="card" style="margin-bottom:14px">
+      <h2>Report</h2>
+      <div class="filters" id="r-presets" style="margin:12px 0">
+        <button class="pill" type="button" data-p="week" aria-pressed="false">This week</button>
+        <button class="pill" type="button" data-p="month" aria-pressed="true">This month</button>
+        <button class="pill" type="button" data-p="last" aria-pressed="false">Last month</button>
+        <button class="pill" type="button" data-p="30" aria-pressed="false">Last 30 days</button>
+        <button class="pill" type="button" data-p="all" aria-pressed="false">All time</button>
+      </div>
+      <div class="row">
+        <label class="f" for="r-from">From<input type="date" id="r-from"></label>
+        <label class="f" for="r-to">To<input type="date" id="r-to"></label>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <label class="f" for="r-disp">Dispatcher<select id="r-disp"></select></label>
+        <label class="f" for="r-type">Job type
+          <select id="r-type"><option value="">All job types</option><option value="Hourly">Hourly</option><option value="Transfer">Transfer</option></select>
+        </label>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <label class="f" for="r-veh">Vehicle type<select id="r-veh"></select></label>
+        <label class="f" for="r-pay">Payment
+          <select id="r-pay"><option value="">All</option><option value="paid">Paid</option><option value="pending">Pending</option></select>
+        </label>
+      </div>
+    </div>
+    <div id="r-delays"></div>
+    <div class="sum" id="r-sum"></div>
+    <p class="hint" id="r-note" style="margin:-4px 0 8px"></p>
+    <div id="r-bydisp"></div>
+    <div id="r-byveh"></div>
+    <div id="r-bytype"></div>
+    <div class="day" id="r-listhead">Matching jobs</div>
+    <div id="r-list"></div>
+    <div class="actions" style="margin-top:16px">
+      <button class="btn primary" type="button" id="r-export">Download this report (CSV)</button>
+    </div>
+  </section>
+
+  <section class="view" id="v-rates" hidden>
+    <button class="btn small ghost" type="button" id="rt-back" style="padding-left:0;margin-bottom:6px">&lsaquo; Report</button>
+    <div class="segc" id="rateRange" role="group" aria-label="Period">
+      <button type="button" data-d="0" aria-pressed="true">All time</button>
+      <button type="button" data-d="90" aria-pressed="false">90 days</button>
+      <button type="button" data-d="30" aria-pressed="false">30 days</button>
+    </div>
+    <p class="hint" id="rateNote" style="margin:10px 4px 14px"></p>
+    <div id="rateBody"></div>
+    <div class="cap" style="margin:22px 4px 8px">Price a new job</div>
+    <div class="card" style="display:grid;gap:14px">
+      <div class="seg" role="radiogroup" aria-label="Vehicle">
+        <label><input type="radio" name="qveh" value="SUV" checked>SUV</label>
+        <label><input type="radio" name="qveh" value="Sedan">Sedan</label>
+      </div>
+      <div class="seg" role="radiogroup" aria-label="Job type">
+        <label><input type="radio" name="qtype" value="Hourly" checked>Hourly</label>
+        <label><input type="radio" name="qtype" value="Transfer">Transfer</label>
+      </div>
+      <div class="row">
+        <label class="f" for="q-hours">Hours<input type="number" id="q-hours" inputmode="decimal" step="0.25" min="0" placeholder="e.g. 4"></label>
+        <label class="f" id="q-milesWrap" for="q-miles" hidden>Miles, whole job<input type="number" id="q-miles" inputmode="decimal" step="0.1" min="0" placeholder="e.g. 40"></label>
+      </div>
+      <div class="group" id="q-out" style="margin:0"></div>
+      <p class="hint">A ballpark from your own past jobs for this vehicle. It is a starting point for a quote, not a promise.</p>
+    </div>
+  </section>
+
+  <section class="view" id="v-calc" hidden>
+    <button class="btn small ghost" type="button" id="c-back" style="padding-left:0;margin-bottom:6px">&lsaquo; Report</button>
+    <div class="card" style="display:grid;gap:14px">
+      <h2 style="margin:0">Price calculator</h2>
+      <p class="hint" style="margin:-8px 0 0">For transfer offers from dispatchers or customers. Fill in what you know and the price builds itself.</p>
+      <div class="seg" role="radiogroup" aria-label="Vehicle">
+        <label><input type="radio" name="cveh" value="SUV" checked>SUV</label>
+        <label><input type="radio" name="cveh" value="Sedan">Sedan</label>
+      </div>
+      <div class="seg" role="radiogroup" aria-label="Job type">
+        <label><input type="radio" name="ctype" value="Transfer" checked>Transfer</label>
+        <label><input type="radio" name="ctype" value="Hourly">Hourly</label>
+      </div>
+      <div class="row">
+        <label class="f" for="c-date">Date<input type="date" id="c-date"></label>
+        <label class="f" for="c-time">Pick-up time<input type="time" id="c-time"></label>
+      </div>
+      <label class="f" for="c-pick">Pick-up location<input type="text" id="c-pick"></label>
+      <label class="f" id="c-dropLab" for="c-drop">Drop-off location<input type="text" id="c-drop"></label>
+      <label class="chk" id="c-roundLab" for="c-round"><input type="checkbox" id="c-round"><span>Round trip (returns to the pick-up)</span></label>
+      <div class="f" id="c-hoursWrap" hidden>
+        <label class="f" for="c-hours">Hours<input type="number" id="c-hours" inputmode="decimal" step="0.25" min="0" placeholder="e.g. 4"></label>
+        <p class="hint" id="c-hoursTip" style="margin:6px 0 0"></p>
+      </div>
+      <div class="row" id="c-milesRow">
+        <label class="f" for="c-miles">Miles, whole job<input type="number" id="c-miles" inputmode="decimal" step="0.1" min="0" placeholder="e.g. 42"></label>
+        <div class="f"><span>&nbsp;</span><a class="btn small ghost" id="c-maps" target="_blank" rel="noopener">Open in Maps</a></div>
+      </div>
+      <p class="hint" id="c-milesTip" style="margin:-6px 0 0"></p>
+      <label class="chk" for="c-air"><input type="checkbox" id="c-air"><span>Airport meet and greet (LAX etc.)</span></label>
+      <div class="row" id="c-airWrap" hidden>
+        <label class="f" for="c-airfee">Meet and greet ($)<input type="number" id="c-airfee" inputmode="decimal" step="1" min="0"></label>
+        <label class="f" for="c-flight">Flight number<input type="text" id="c-flight" placeholder="optional" autocapitalize="characters" autocomplete="off"></label>
+      </div>
+      <div class="row" id="c-parkWrap" hidden>
+        <label class="f" for="c-park">Parking ($, actual cost)<input type="number" id="c-park" inputmode="decimal" step="1" min="0" placeholder="0"></label>
+        <div></div>
+      </div>
+      <div id="c-overWrap" style="display:grid;gap:8px" hidden>
+        <label class="chk" for="c-overOn"><input type="checkbox" id="c-overOn"><span>Add overnight costs (hotel, meals)</span></label>
+        <label class="f" for="c-over">Overnight costs ($)<input type="number" id="c-over" inputmode="decimal" step="10" min="0"></label>
+      </div>
+      <div id="c-retWrap" style="display:grid;gap:8px">
+        <div class="row">
+          <label class="f" for="c-ret">Miles from the drop-off back home<input type="number" id="c-ret" inputmode="decimal" step="0.1" min="0" placeholder="e.g. 65"></label>
+          <div class="f"><span>&nbsp;</span><a class="btn small ghost" id="c-retmaps" target="_blank" rel="noopener">Check in Maps</a></div>
+        </div>
+        <div class="row">
+          <label class="f" for="c-retfee">Return fee ($)<input type="number" id="c-retfee" inputmode="decimal" step="1" min="0" placeholder="0"></label>
+          <div class="f"><span>&nbsp;</span><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn small ghost" type="button" id="c-retskip">Skip it</button><button class="btn small ghost" type="button" id="c-retuse">Use calculated</button></div></div>
+        </div>
+        <p class="hint" id="c-retTip" style="margin:0"></p>
+      </div>
+      <div style="display:grid;gap:8px">
+        <div class="cap">Who is offering the job?</div>
+        <div class="seg" role="radiogroup" aria-label="Who is offering the job">
+          <label><input type="radio" name="csrc" value="Direct" checked>Customer</label>
+          <label><input type="radio" name="csrc" value="Affiliate">Dispatcher</label>
+        </div>
+        <p class="hint" id="c-srcTip" style="margin:0"></p>
+      </div>
+    </div>
+
+    <div class="hero" id="c-hero" aria-live="polite"><div class="hl">Price to ask</div><div class="hv" id="c-heroV">—</div><div class="hs" id="c-heroS"></div></div>
+    <div id="c-warn"></div>
+    <div class="cap" id="c-capout" style="margin:18px 4px 8px">How it adds up</div>
+    <div class="group" id="c-out"></div>
+    <div class="card" style="display:grid;gap:14px">
+      <label class="f" for="c-quote">Agreed price ($)<input type="number" id="c-quote" inputmode="decimal" step="1" min="0"></label>
+      <p class="hint" id="c-quoteTip" style="margin:-6px 0 0">Starts at the price to ask. When you and the other side settle on a different number, type the agreed price here.</p>
+      <div class="actions">
+        <button class="btn primary" type="button" id="c-add">Add to Jobs</button>
+        <button class="btn ghost" type="button" id="c-reset">Clear</button>
+      </div>
+      <p class="hint" style="margin:0">Add to Jobs opens the New job form with these details filled in. Nothing is saved until you tap Save job.</p>
+    </div>
+
+    <details class="card" id="c-rates" style="margin-top:14px">
+      <summary style="font-weight:600;cursor:pointer">Rates used</summary>
+      <div style="display:grid;gap:12px;margin-top:12px">
+        <div class="row">
+          <label class="f" for="cs-base">First miles, flat ($)<input type="number" id="cs-base" inputmode="decimal" step="1" min="0"></label>
+          <label class="f" for="cs-basemi">Miles in that flat price<input type="number" id="cs-basemi" inputmode="decimal" step="1" min="0"></label>
+        </div>
+        <div class="row">
+          <label class="f" for="cs-reg">Per mile, one way ($)<input type="number" id="cs-reg" inputmode="decimal" step="0.1" min="0"></label>
+          <label class="f" for="cs-earlyadd">Early-morning extra per mile ($)<input type="number" id="cs-earlyadd" inputmode="decimal" step="0.1" min="0"></label>
+        </div>
+        <div class="row">
+          <label class="f" for="cs-from">Early rate from<input type="time" id="cs-from"></label>
+          <label class="f" for="cs-to">Early rate until<input type="time" id="cs-to"></label>
+        </div>
+        <div class="row">
+          <label class="f" for="cs-airgov">Airport fee ($)<input type="number" id="cs-airgov" inputmode="decimal" step="1" min="0"></label>
+          <div></div>
+        </div>
+        <div class="row">
+          <label class="f" for="cs-diesel">Fuel per gallon ($)<input type="number" id="cs-diesel" inputmode="decimal" step="0.1" min="0"></label>
+          <label class="f" for="cs-round">Round up to the next ($)<input type="number" id="cs-round" inputmode="decimal" step="1" min="1"></label>
+        </div>
+        <div class="row">
+          <label class="f" for="cs-disc">Affiliate discount (%)<input type="number" id="cs-disc" inputmode="decimal" step="1" min="0" max="100"></label>
+          <label class="f" for="cs-hrate">Hourly rate, direct ($)<input type="number" id="cs-hrate" inputmode="decimal" step="1" min="0"></label>
+        </div>
+        <div class="row">
+          <label class="f" for="cs-minh">Hourly minimum (hours)<input type="number" id="cs-minh" inputmode="decimal" step="0.5" min="0"></label>
+          <label class="f" for="cs-sedan">Sedan discount (%)<input type="number" id="cs-sedan" inputmode="decimal" step="1" min="0" max="100"></label>
+        </div>
+        <div class="row">
+          <label class="f" for="cs-rtrate">Per mile, round trip ($)<input type="number" id="cs-rtrate" inputmode="decimal" step="0.1" min="0"></label>
+          <label class="f" for="cs-cap">Most discount, sedan + dispatcher (%)<input type="number" id="cs-cap" inputmode="decimal" step="1" min="0" max="100"></label>
+        </div>
+        <div class="row">
+          <label class="f" for="cs-speedcity">City speed (mph)<input type="number" id="cs-speedcity" inputmode="decimal" step="1" min="1"></label>
+          <label class="f" for="cs-speedhwy">Highway speed (mph)<input type="number" id="cs-speedhwy" inputmode="decimal" step="1" min="1"></label>
+        </div>
+        <div class="row">
+          <label class="f" for="cs-longh">Long day warning after (driving hours)<input type="number" id="cs-longh" inputmode="decimal" step="0.5" min="1"></label>
+          <label class="f" for="cs-over">Overnight costs, suggested ($)<input type="number" id="cs-over" inputmode="decimal" step="10" min="0"></label>
+        </div>
+        <div class="row">
+          <label class="f" for="cs-citymi">City miles before highway speed<input type="number" id="cs-citymi" inputmode="decimal" step="1" min="0"></label>
+          <label class="f" for="cs-home">Home base (for the drive back)<input type="text" id="cs-home" placeholder="City or address"></label>
+        </div>
+        <div class="row">
+          <label class="f" for="cs-mpghw">Highway MPG<input type="number" id="cs-mpghw" inputmode="decimal" step="0.1" min="1"></label>
+          <label class="f" for="cs-mpgcity">City MPG<input type="number" id="cs-mpgcity" inputmode="decimal" step="0.1" min="1"></label>
+        </div>
+        <p class="hint" style="margin:0">One way: the flat price covers the first miles, then the per-mile rate. Round trip: the same rule on the total miles there and back, at the round trip rate. Pick-ups in the early window (3:00 to 5:30 AM by default) add the early-morning extra to every mile, one way or round trip. There is no return fee. At the airport you add the meet and greet, the airport fee and the parking you actually paid; none of them are discounted. Driving time (used only for the waiting and long day warnings, never for the price) is estimated from the two speeds: the first city miles (set above) at city speed, the rest at highway speed.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn small" type="button" id="cs-savedef">Save these as my defaults</button><button class="btn small ghost" type="button" id="cs-default">Back to my defaults</button><button class="btn small ghost" type="button" id="cs-factory">Back to the original rates</button></div>
+      </div>
+    </details>
+  </section>
+
+  <section class="view" id="v-backup" hidden>
+    <button class="btn small ghost" type="button" id="bk-back" style="padding-left:0;margin-bottom:6px">&lsaquo; Report</button>
+    <div class="card">
+      <h2>Backup</h2>
+      <div class="kv">
+        <div><span>Jobs logged</span><b class="num" id="bk-count">0</b></div>
+        <div><span>Proof screenshots</span><b class="num" id="bk-proofs">0</b></div>
+        <div><span>Cloud copy</span><b id="bk-cloud">Checking</b></div>
+        <div><span>Last file backup</span><b class="num" id="bk-last">Never</b></div>
+      </div>
+      <p class="hint" style="margin-bottom:14px">Your jobs are saved on this phone only, nowhere else. Once a week, make a backup: your phone asks where to put the file (Files, iCloud Drive, Google Drive, email). It is a spreadsheet (CSV) that opens in Excel. Keep it somewhere safe.</p>
+      <div class="actions">
+        <button class="btn primary" type="button" id="bk-btn">Download backup</button>
+        <button class="btn ghost" type="button" id="bk-csv">Spreadsheet only (CSV, no screenshots)</button>
+      </div>
+      <p class="hint" id="bk-msg" style="margin-top:10px"></p>
+      <p class="hint" style="margin-top:6px">App version F1. Updates keep your jobs and rates.</p>
+      <hr style="border:0;border-top:1px dashed var(--line);margin:18px 0">
+      <p class="hint" style="margin-bottom:10px">Restore: pick a backup file you saved earlier. Jobs already in the app are skipped, so nothing doubles up.</p>
+      <input type="file" id="bk-file" accept=".zip,.csv,application/zip,text/csv" hidden>
+      <button class="btn" type="button" id="bk-restore">Restore from backup (ZIP or CSV)</button>
+      <p class="hint" id="bk-restore-msg" style="margin-top:10px"></p>
+      <hr style="border:0;border-top:1px dashed var(--line);margin:18px 0">
+      <p class="hint" style="margin-bottom:10px">Finished testing? Remove every job from this phone. Make a backup first.</p>
+      <button class="btn danger" type="button" id="bk-clear">Delete all jobs</button>
+    </div>
+  </section>
+</div>
+
+<div id="filterSheet" role="dialog" aria-modal="true" aria-label="Filters" hidden>
+  <div class="sheet">
+    <div class="grab"></div>
+    <div class="sheethead"><button type="button" id="filterReset">Reset</button><h2>Filters</h2><button type="button" id="filterDone">Done</button></div>
+    <div class="cap">Period</div>
+    <div class="filters" id="rangeFilters">
+      <button class="pill" type="button" data-r="7" aria-pressed="true">Last 7 days</button>
+      <button class="pill" type="button" data-r="week" aria-pressed="false">This week</button>
+      <button class="pill" type="button" data-r="last" aria-pressed="false">Last week</button>
+      <button class="pill" type="button" data-r="30" aria-pressed="false">30 days</button>
+      <button class="pill" type="button" data-r="all" aria-pressed="false">All time</button>
+      <button class="pill" type="button" data-r="custom" aria-pressed="false">Custom</button>
+    </div>
+    <div class="row" id="customRange" style="margin-top:12px" hidden>
+      <label class="f" for="cr-from">From<input type="date" id="cr-from"></label>
+      <label class="f" for="cr-to">To<input type="date" id="cr-to"></label>
+    </div>
+    <div class="cap" style="margin-top:20px">Type</div>
+    <div class="filters" id="filters">
+      <button class="pill" type="button" data-f="all" aria-pressed="true">All</button>
+      <button class="pill" type="button" data-f="Hourly" aria-pressed="false">Hourly</button>
+      <button class="pill" type="button" data-f="Transfer" aria-pressed="false">Transfer</button>
+      <button class="pill" type="button" data-f="Delayed" aria-pressed="false">Delayed</button>
+      <button class="pill" type="button" data-f="Cancelled" aria-pressed="false">Cancelled</button>
+    </div>
+    <div class="cap" style="margin-top:20px">Payment</div>
+    <div class="filters" id="payFilters">
+      <button class="pill" type="button" data-pay="all" aria-pressed="true">All jobs</button>
+      <button class="pill" type="button" data-pay="pending" aria-pressed="false">To collect</button>
+      <button class="pill" type="button" data-pay="paid" aria-pressed="false">Paid</button>
+    </div>
+    <div class="cap" style="margin-top:20px">Dispatcher</div>
+    <label class="f" for="dispFilter"><select id="dispFilter"><option value="">All dispatchers</option></select></label>
+    <p class="hint" style="margin:6px 0 0">Shows every job from that dispatcher, from any date. Use Payment above to see only what they still owe.</p>
+  </div>
+</div>
+
+<div id="jobSheet" role="dialog" aria-modal="true" aria-label="Job details" hidden>
+  <div class="sheet">
+    <div class="grab"></div>
+    <div class="sheethead"><span style="width:56px"></span><h2>Job</h2><button type="button" id="jobClose">Close</button></div>
+    <div id="jobBody"></div>
+  </div>
+</div>
+
+<div id="rideSheet" role="dialog" aria-modal="true" aria-labelledby="rideSheetTitle" hidden>
+  <div class="sheet">
+    <div class="grab"></div>
+    <div class="sheethead"><button type="button" id="rideClose">Cancel</button><h2 id="rideSheetTitle">Rideshare week</h2><span style="width:56px"></span></div>
+    <form id="rideForm" autocomplete="off" novalidate>
+      <div class="seg" role="radiogroup" aria-label="Company">
+        <label><input type="radio" name="rco" value="Uber" checked>Uber</label>
+        <label><input type="radio" name="rco" value="Lyft">Lyft</label>
+      </div>
+      <div class="row">
+        <label class="f" for="rd-start">Week starts<input type="date" id="rd-start"></label>
+        <label class="f" for="rd-end">Week ends<input type="date" id="rd-end"></label>
+      </div>
+      <label class="f" id="rdModeWrap" for="rd-mode">Uber week ends on
+        <select id="rd-mode"><option value="sun">Sunday</option><option value="mon">The next Monday</option></select>
+      </label>
+      <label class="f" for="rd-amt">Amount earned ($)<input type="number" id="rd-amt" inputmode="decimal" step="0.01" min="0" placeholder="Weekly total"></label>
+      <label class="f" for="rd-note">Notes<textarea id="rd-note" placeholder="Anything to note about the week"></textarea></label>
+      <p class="err" id="rideErr" role="alert"></p>
+      <div class="actions">
+        <button class="btn primary" type="submit" id="rideSave">Save week</button>
+        <button class="btn danger" type="button" id="rideDel" hidden>Delete week</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="lightbox" role="dialog" aria-modal="true" aria-label="Proof screenshot" hidden>
+  <div class="lbbar"><span id="lbCap"></span><button class="btn small" type="button" id="lbClose">Close</button></div>
+  <img id="lbImg" alt="">
+</div>
+
+<div id="delDlg" role="dialog" aria-modal="true" aria-labelledby="delTitle" hidden>
+  <div class="dlgcard">
+    <h2 id="delTitle">Delete?</h2>
+    <p id="delText" style="margin:0"></p>
+    <p id="delBackup" class="hint"></p>
+    <label class="f" for="delType">Type <b>delete</b> to confirm<input type="text" id="delType" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
+    <div class="row">
+      <button class="btn" type="button" id="delNo">Keep it</button>
+      <button class="btn danger" type="button" id="delYes" disabled>Delete</button>
+    </div>
+  </div>
+</div>
+<div id="okDlg" role="dialog" aria-modal="true" aria-labelledby="okTitle" hidden>
+  <div class="dlgcard">
+    <h2 id="okTitle"></h2>
+    <p id="okText" style="margin:0"></p>
+    <div class="row">
+      <button class="btn" type="button" id="okNo">Cancel</button>
+      <button class="btn primary" type="button" id="okYes">Confirm</button>
+    </div>
+  </div>
+</div>
+<div id="toast" hidden></div>
+
+<nav class="tabs" aria-label="Sections">
+  <button type="button" data-v="jobs" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></svg>Jobs</button>
+  <button type="button" data-v="new"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>New</button>
+  <button type="button" data-v="report"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Report</button>
+</nav>
+
+<script>
+(function () {
+  var VEHICLES = ["SUV", "Sedan"];
+  var BACKUP_DAYS = 7;
+  var state = { jobs: {}, editing: null, filter: "all", pay: "all", range: "7", disp: "", q: "", view: "jobs", proofs: [] };
+  var assetsNs = null, uploading = false, readCtl = null;
+  // The Jobs list shows the newest job first, right under the rideshare card and the monthly totals.
+  var stickBottom = false; // old scroll-to-bottom behaviour, switched off
+  function scrollBottom() {}
+  var db = null, dl = null, loadTimer = null, pushing = false, delTimer = null;
+
+
+  // Backups on this phone: the share sheet lets the user choose where the file goes (Files, iCloud, Drive...). Falls back to a normal download.
+  var LOCAL_DL = { save: function (o) {
+    return new Promise(function (res, rej) {
+      var type = /\.csv$/i.test(o.filename) ? "text/csv" : "application/zip", blob = new Blob([o.data], { type: type });
+      function plain() {
+        var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = o.filename; document.body.appendChild(a); a.click();
+        setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 4000); res();
+      }
+      var file = null; try { file = new File([blob], o.filename, { type: type }); } catch (e) {}
+      if (file && navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+        navigator.share({ files: [file], title: o.filename }).then(res, function (e) {
+          if (e && e.name === "AbortError") { var er = new Error("declined"); er.code = "declined"; rej(er); } else plain();
+        });
+      } else plain();
+    });
+  } };
+  function $(s) { return document.querySelector(s); }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+  // ---------- local storage (per phone mirror) ----------
+  function lsGet(k, d) { try { var v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  state.jobs = lsGet("cjl.jobs", {});
+  function saveLocal() { lsSet("cjl.jobs", state.jobs); }
+  function getPending() { return lsGet("cjl.pending", []); }
+  function setPending(id, on) {
+    var p = getPending().filter(function (x) { return x !== id; });
+    if (on) p.push(id);
+    lsSet("cjl.pending", p);
+  }
+
+  // ---------- formatting ----------
+  function todayStr() { var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+  function fmtTime(t) {
+    if (!t) return "";
+    var p = t.split(":"), h = +p[0], m = p[1], ap = h >= 12 ? "PM" : "AM";
+    return ((h % 12) || 12) + ":" + m + " " + ap;
+  }
+  function hoursBetween(s, e) {
+    if (!s || !e) return null;
+    var a = s.split(":"), b = e.split(":");
+    var mins = ((+b[0] * 60 + +b[1]) - (+a[0] * 60 + +a[1]) + 1440) % 1440;
+    return Math.round(mins / 60 * 100) / 100;
+  }
+  function fmtMoney(n) { return n == null || n === "" ? "" : "$" + Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  // Outcome: "done" (default, also for jobs saved before v15), "cxl_bill" (cancelled but billable), "cxl_free" (cancelled, no charge).
+  function isCxl(j) { return j.status === "cxl_bill" || j.status === "cxl_free"; }
+  function isFree(j) { return j.status === "cxl_free"; }
+  function isPaid(j) { return !!j.paid || isFree(j); }
+  function hoursOf(j) { return isCxl(j) || j.type !== "Hourly" ? 0 : (hoursBetween(j.start, j.end) || 0); }
+  // Days since a billable cancellation with no amount yet (The company sends the rate on a statement about 30 days later).
+  function stmtDays(j) {
+    if (j.status !== "cxl_bill" || j.paid || j.price != null) return null;
+    var p = (j.cxlDate || j.date).split("-");
+    return Math.floor((Date.now() - new Date(+p[0], +p[1] - 1, +p[2]).getTime()) / 86400000);
+  }
+  function recvOf(j) { return j.paid ? (j.received != null ? j.received : (j.price || 0)) : 0; }
+  function owedOf(j) { return isPaid(j) ? 0 : (j.price || 0); }
+  function payText(j) {
+    if (isFree(j)) return "No charge";
+    if (j.paid) return recvOf(j) ? "Paid " + fmtMoney(recvOf(j)) : "Paid";
+    if (j.price == null) return j.status === "cxl_bill" ? "Billable · amount TBD" : "Pending";
+    return fmtMoney(j.price) + " due";
+  }
+  function routePoints(j) {
+    var pts = [];
+    if (j.pickup) pts.push(j.pickup);
+    (j.stops || []).forEach(function (s) { pts.push(s); });
+    if (j.dropoff) pts.push(j.dropoff);
+    if (j.roundTrip && j.type !== "Hourly" && j.pickup) pts.push(j.pickup);
+    return pts;
+  }
+  function routeText(j) { var p = routePoints(j); return p.length ? p.join(" → ") : "No route entered"; }
+  function fmtDay(ds) {
+    var p = ds.split("-"), d = new Date(+p[0], +p[1] - 1, +p[2]);
+    var o = { weekday: "short", month: "short", day: "numeric" };
+    if (d.getFullYear() !== new Date().getFullYear()) o.year = "numeric";
+    return d.toLocaleDateString(undefined, o);
+  }
+  function toast(msg, undo) {
+    var t = $("#toast"); t.textContent = msg;
+    if (undo) {
+      var u = el("button", null, "Undo"); u.type = "button";
+      u.style.cssText = "margin-left:14px;border:0;background:transparent;color:inherit;font:700 15px inherit;text-decoration:underline;cursor:pointer;padding:4px";
+      u.addEventListener("click", function () { t.hidden = true; undo(); });
+      t.append(u);
+    }
+    t.hidden = false;
+    clearTimeout(toast._t); toast._t = setTimeout(function () { t.hidden = true; }, undo ? 5500 : 2600);
+  }
+
+  // ---------- views ----------
+  function showView(v) {
+    state.view = v;
+    ["new", "jobs", "rides", "report", "rates", "calc", "backup"].forEach(function (n) { $("#v-" + n).hidden = n !== v; });
+    var tab = v === "backup" || v === "rates" || v === "calc" ? "report" : v;
+    document.querySelectorAll("nav.tabs button").forEach(function (b) {
+      if (b.dataset.v === tab) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+    });
+    $("#screenTitle").textContent = { jobs: "Jobs", "new": state.editing ? "Edit Job" : "New Job", rides: "Earnings", report: "Report", rates: "Rate Stats", calc: "Price Calculator", backup: "Backup" }[v] || "Job Log";
+    if (v === "rides") renderRides();
+    if (v === "rates") { renderRates(); renderQuote(); }
+    if (v === "calc") { if (!$("#c-date").value) resetCalc(); else renderCalc(); }
+    if (v === "jobs") renderList();
+    if (v === "report") renderReport();
+    if (v === "backup") renderBackup();
+    updateBackupViews();
+    window.scrollTo(0, 0);
+  }
+  document.querySelectorAll("nav.tabs button").forEach(function (b) { b.addEventListener("click", function () { showView(b.dataset.v); }); });
+
+  // ---------- form ----------
+  function jtype() { return document.querySelector('input[name="jtype"]:checked').value; }
+  function applyType() {
+    var hourly = jtype() === "Hourly";
+    var rt = !hourly && $("#f-round").checked;
+    $("#endWrap").hidden = false;
+    $("#endLab").textContent = hourly ? "End time" : rt ? "Final drop-off time" : "Drop-off time (optional)";
+    $("#roundWrap").hidden = hourly;
+    $("#f-miles").placeholder = rt ? "Total miles, there and back" : "Pick-up to drop-off";
+    updateMilesTip();
+    $("#stopsWrap").hidden = false;
+    $("#assignedWrap").hidden = !hourly;
+    $("#milesWrap").hidden = hourly;
+    applyStatus();
+    renderFormNav();
+    if (hourly) $("#milesEstNote").hidden = true;
+  }
+  function jstatus() { return document.querySelector('input[name="jstatus"]:checked').value; }
+  function applyStatus() {
+    var s = jstatus(), c = s !== "done";
+    $("#cxlWrap").hidden = !c;
+    $("#delayWrap").hidden = jtype() === "Hourly" || c;
+    $("#payWrap").hidden = s === "cxl_free";
+    $("#priceLabTxt").textContent = s === "cxl_bill" ? "Billable amount ($)" : "Agreed or offered price ($)";
+    $("#f-price").placeholder = s === "cxl_bill" ? "Leave blank until the statement arrives" : "Leave blank if none";
+    $("#priceHint").hidden = s !== "cxl_bill";
+    if (c && !$("#f-cxldate").value) $("#f-cxldate").value = todayStr();
+  }
+  document.querySelectorAll('input[name="jstatus"]').forEach(function (r) { r.addEventListener("change", applyStatus); });
+  // Distance follows the box: a round trip is twice the one-way figure, and unticking halves it back.
+  $("#f-round").addEventListener("change", function () {
+    var f = $("#f-miles"), v = f.value.trim(), n = Number(v);
+    if (jtype() === "Transfer" && v !== "" && !isNaN(n) && n > 0 && !hasStops()) {
+      var wasEst = milesIsEst();
+      f.value = String(Math.round(n * (this.checked ? 2 : 0.5) * 10) / 10);
+      if (wasEst) state.milesEst = f.value;
+      $("#milesEstNote").hidden = !milesIsEst();
+    }
+    applyType();
+  });
+  function type_isHourly(j) { return j.type === "Hourly"; }
+  function milesIsEst() { return !!state.milesEst && $("#f-miles").value.trim() === state.milesEst; }
+  $("#f-miles").addEventListener("input", function () { $("#milesEstNote").hidden = !milesIsEst(); });
+  function formStops() { return Array.prototype.map.call($("#stops").querySelectorAll("input"), function (i) { return i.value.trim(); }).filter(Boolean); }
+  function hasStops() { return formStops().length > 0; }
+  function updateMilesTip() {
+    var rt = $("#f-round").checked, st = hasStops();
+    $("#milesTip").textContent = rt || st
+      ? "Enter the miles for the whole job: " + (st ? "pick-up, each stop, drop-off" : "pick-up, drop-off") + (rt ? ", and back to the pick-up" : "") + ". Open in Maps draws that exact route. Use the total it shows."
+      : "Miles from the pick-up to the drop-off.";
+  }
+  $("#stops").addEventListener("input", updateMilesTip);
+  new MutationObserver(updateMilesTip).observe($("#stops"), { childList: true });
+  // The whole route: pick-up, every stop, drop-off, and back to the pick-up on a round trip.
+  $("#mapsLink").addEventListener("click", function () {
+    var a = $("#f-pick").value.trim(), b = $("#f-drop").value.trim(), rt = jtype() === "Transfer" && $("#f-round").checked;
+    var via = formStops().concat(rt && b ? [b] : []), dest = rt && a ? a : b;
+    this.href = dest ? mapsDir(dest, a, via) : "https://www.google.com/maps";
+  });
+  var GRACE = 30;
+  function pobDelay(start, pob) {
+    if (!start || !pob) return null;
+    var a = start.split(":"), b = pob.split(":");
+    var m = (+b[0] * 60 + +b[1]) - (+a[0] * 60 + +a[1]);
+    if (m < -720) m += 1440;
+    return m;
+  }
+  function updateDelayCalc() {
+    var pob = $("#f-pob").value, m = pobDelay($("#f-start").value, pob), f = $("#f-delay"), n = $("#delayCalc");
+    f.readOnly = !!pob;
+    if (!pob) { n.textContent = "Enter the POB time and the delay is worked out for you. Over " + GRACE + " minutes is flagged as a delay."; return; }
+    if (m == null) { n.textContent = "Enter the start time to work out the delay."; return; }
+    if (m <= 0) { f.value = ""; n.textContent = "POB was on time or early. No delay."; return; }
+    f.value = m;
+    n.textContent = "POB " + fmtTime(pob) + " is " + fmtDelay(m) + " after the " + fmtTime($("#f-start").value) + " pick-up. " +
+      (m > GRACE ? "Over the " + GRACE + " minute allowance: flagged as a delay." : "Within the " + GRACE + " minute allowance: not flagged.");
+  }
+  $("#f-pob").addEventListener("input", updateDelayCalc);
+  $("#f-start").addEventListener("input", updateDelayCalc);
+  function isLate(j) { return j.type === "Transfer" && !isCxl(j) && j.delay > GRACE; }
+  function repText(j) { return j.reported ? "Reported to dispatcher" + (j.reportedOn ? " " + j.reportedOn.slice(5) : "") : (j.date < todayStr() ? "NOT reported · overdue" : "Not reported yet · report today"); }
+  function fmtDelay(m) { m = Math.round(m); return m < 60 ? m + " min" : Math.floor(m / 60) + " h" + (m % 60 ? " " + (m % 60) + " min" : ""); }
+  function matchType(j, f) { return f === "all" || (f === "Delayed" ? isLate(j) : f === "Cancelled" ? isCxl(j) : j.type === f); }
+  // Google Maps directions links (no API needed). Starts from the phone's current location unless an origin is given.
+  function mapsDir(dest, origin, via) {
+    return "https://www.google.com/maps/dir/?api=1&travelmode=driving" +
+      (origin ? "&origin=" + encodeURIComponent(origin) : "") + "&destination=" + encodeURIComponent(dest) +
+      (via && via.length ? "&waypoints=" + via.map(encodeURIComponent).join("%7C") : "");
+  }
+  function navLinksFor(pts, pick, drop) {
+    var out = [];
+    if (pick) out.push(["Go to pick-up", mapsDir(pick)]);
+    if (drop) out.push(["Go to drop-off", mapsDir(drop)]);
+    if (pts.length >= 2) out.push(["Full route", mapsDir(pts[pts.length - 1], pts[0], pts.slice(1, -1))]);
+    return out;
+  }
+  function navLinks(j) { return navLinksFor(routePoints(j), j.pickup, j.dropoff); }
+  function formJob() {
+    var stops = Array.prototype.map.call($("#stops").querySelectorAll("input"), function (i) { return i.value.trim(); }).filter(Boolean);
+    return { type: jtype(), roundTrip: $("#f-round").checked, pickup: $("#f-pick").value.trim(), dropoff: $("#f-drop").value.trim(), stops: stops };
+  }
+  function renderFormNav() {
+    var box = $("#navRow"), j = formJob(); box.innerHTML = "";
+    var l = navLinks(j);
+    box.hidden = !l.length;
+    l.forEach(function (x) { var a = el("a", "navlink", x[0]); a.href = x[1]; a.target = "_blank"; a.rel = "noopener"; box.append(a); });
+  }
+  function fmtMiles(j) {
+    return j.miles == null ? "" : (j.milesEst ? "~" : "") + Number(j.miles).toLocaleString(undefined, { maximumFractionDigits: 1 }) + " mi" + (j.milesEst ? " est." : "");
+  }
+  document.querySelectorAll('input[name="jtype"]').forEach(function (r) { r.addEventListener("change", applyType); });
+  function applyPay() { $("#paidFields").hidden = document.querySelector('input[name="pay"]:checked').value !== "paid"; }
+  document.querySelectorAll('input[name="pay"]').forEach(function (r) {
+    r.addEventListener("change", function () {
+      applyPay();
+      if (r.checked && r.value === "paid") {
+        if ($("#f-recv").value === "" && $("#f-price").value !== "") $("#f-recv").value = $("#f-price").value;
+        if (!$("#f-paiddate").value) $("#f-paiddate").value = todayStr();
+      }
+    });
+  });
+
+  function addListRow(wrapSel, label, placeholder, val, withTime, timeVal) {
+    var wrap = $(wrapSel), n = wrap.children.length + 1;
+    var row = el("div", "stop");
+    var lab = el("span", null, label + " " + n);
+    var inp = el("input"); inp.type = "text"; inp.id = wrapSel.slice(1) + "-" + Date.now() + "-" + n; inp.value = val || ""; inp.setAttribute("aria-label", label + " " + n); inp.placeholder = placeholder;
+    var tm = null;
+    if (withTime) { tm = el("input"); tm.type = "time"; tm.value = timeVal || ""; tm.setAttribute("aria-label", label + " " + n + " start time"); row.classList.add("tm"); }
+    var rm = el("button", "btn small ghost", "Remove"); rm.type = "button";
+    rm.addEventListener("click", function () {
+      row.remove();
+      Array.prototype.forEach.call(wrap.children, function (r, i) { r.firstChild.textContent = label + " " + (i + 1); });
+    });
+    if (tm) row.append(lab, inp, tm, rm); else row.append(lab, inp, rm);
+    wrap.append(row);
+    if (!val) inp.focus();
+  }
+  function addStopRow(val) { addListRow("#stops", "Stop", "Address or place", val); }
+  function addAssignedRow(val, t) { addListRow("#assigned", "Job", "Job number", val, true, t); }
+  $("#addStop").addEventListener("click", function () { addStopRow(""); });
+  $("#addAssigned").addEventListener("click", function () { addAssignedRow(""); });
+
+  // A job saved earlier with another vehicle name keeps it as an extra option while editing.
+  function setVehicle(v) {
+    var s = $("#f-veh");
+    Array.prototype.slice.call(s.options).forEach(function (o) { if (o.dataset.legacy) o.remove(); });
+    if (v && VEHICLES.indexOf(v) < 0) { var o = el("option", null, v); o.value = v; o.dataset.legacy = "1"; s.append(o); }
+    s.value = v || "";
+  }
+  // Google's flight card: "AA115" or "aa 115" both become "aa 115 flight status".
+  function flightUrl(f) {
+    var m = String(f || "").toUpperCase().replace(/[^A-Z0-9]/g, "").match(/^([A-Z][A-Z0-9]|[0-9][A-Z]|[A-Z]{3})(\d{1,4}[A-Z]?)$/);
+    var q = m ? m[1] + " " + m[2] : String(f || "").trim();
+    return q ? "https://www.google.com/search?q=" + encodeURIComponent(q.toLowerCase() + " flight status") : "";
+  }
+  function updateFlight() {
+    var u = flightUrl($("#f-flight").value), a = $("#flightLink");
+    a.hidden = !u; if (u) a.href = u; else a.removeAttribute("href");
+  }
+  $("#f-flight").addEventListener("input", updateFlight);
+  function resetForm() {
+    state.editing = null; state.milesEst = "";
+    $("#jobForm").reset(); setVehicle("");
+    document.querySelectorAll("#jobForm .filled").forEach(function (n) { n.classList.remove("filled"); });
+    $("#scanMsg").textContent = ""; $("#scanPaste").innerHTML = ""; updateDelayCalc(); updateFlight();
+    state.proofs = []; renderProofs(); $("#proofPaste").innerHTML = "";
+    $("#proofMsg").textContent = "Screenshots are kept as evidence in the cloud and go into the backup file.";
+    $("#f-date").value = todayStr();
+    document.querySelector('input[name="jtype"][value="Hourly"]').checked = true;
+    $("#stops").innerHTML = ""; $("#assigned").innerHTML = "";
+    $("#formTitle").textContent = "New job";
+    $("#saveBtn").textContent = "Save job";
+    $("#cancelBtn").hidden = true;
+    $("#delBtn").hidden = true;
+    $("#delBtn").textContent = "Delete job";
+    $("#formErr").textContent = "";
+    applyType(); applyPay();
+  }
+  function loadIntoForm(j) {
+    resetForm();
+    state.editing = j.id;
+    document.querySelector('input[name="jtype"][value="' + j.type + '"]').checked = true;
+    $("#f-date").value = j.date || ""; $("#f-job").value = j.jobNum || "";
+    $("#f-start").value = j.start || ""; $("#f-end").value = j.end || "";
+    $("#f-disp").value = j.dispatcher || ""; setVehicle(j.vehicle || ""); $("#f-src").value = j.source || "";
+    $("#f-pick").value = j.pickup || ""; $("#f-drop").value = j.dropoff || "";
+    $("#f-flight").value = j.flight || ""; updateFlight();
+    $("#f-round").checked = !!j.roundTrip;
+    $("#f-price").value = j.price == null ? "" : j.price; $("#f-notes").value = j.notes || "";
+    $("#f-reported").checked = !!j.reported; $("#f-pob").value = j.pob || ""; $("#f-delay").value = j.delay > 0 ? j.delay : ""; $("#f-delaywhy").value = j.delayWhy || "";
+    if (j.pob) updateDelayCalc(); else $("#f-delay").readOnly = false;
+    $("#f-miles").value = j.miles == null ? "" : j.miles;
+    state.milesEst = j.milesEst && j.miles != null ? $("#f-miles").value.trim() : "";
+    (j.stops || []).forEach(function (s) { addStopRow(s); });
+    (j.assigned || []).forEach(function (s, i) { addAssignedRow(s, (j.assignedStart || [])[i]); });
+    document.querySelector('input[name="pay"][value="' + (j.paid ? "paid" : "pending") + '"]').checked = true;
+    $("#f-recv").value = j.received == null ? "" : j.received; $("#f-paiddate").value = j.paidDate || "";
+    document.querySelector('input[name="jstatus"][value="' + (j.status || "done") + '"]').checked = true;
+    $("#f-cxldate").value = j.cxlDate || ""; $("#f-cxltime").value = j.cxlTime || ""; $("#f-cxlby").value = j.cxlBy || "";
+    $("#f-enroute").value = j.enRoute || ""; $("#f-cxlnote").value = j.cxlNote || "";
+    state.proofs = (j.proofs || []).slice(); renderProofs();
+    $("#formTitle").textContent = "Edit job" + (j.jobNum ? " " + j.jobNum : "");
+    $("#saveBtn").textContent = "Save changes";
+    $("#cancelBtn").hidden = false; $("#delBtn").hidden = false;
+    applyType(); applyPay();
+    $("#milesEstNote").hidden = type_isHourly(j) || !milesIsEst();
+    showView("new");
+  }
+  $("#cancelBtn").addEventListener("click", function () { resetForm(); showView("jobs"); });
+
+  $("#jobForm").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var type = jtype();
+    if (!$("#f-date").value) { $("#formErr").textContent = "Pick the job date."; return; }
+    if (!$("#f-start").value) { $("#formErr").textContent = "Enter the start time."; return; }
+    var priceRaw = $("#f-price").value.trim(), milesRaw = $("#f-miles").value.trim();
+    var st = jstatus(), isC = st !== "done";
+    if (uploading) { $("#formErr").textContent = "A screenshot is still uploading. Wait a moment, then save."; return; }
+    var paid = st !== "cxl_free" && document.querySelector('input[name="pay"]:checked').value === "paid";
+    var hasDelay = type === "Transfer" && !isC && Number($("#f-delay").value) > 0;
+    var recvRaw = $("#f-recv").value.trim();
+    var assigned = [], assignedStart = [];
+    if (type === "Hourly") Array.prototype.forEach.call($("#assigned").children, function (r) {
+      var v = r.querySelector('input[type="text"]').value.trim();
+      if (v) { assigned.push(v); assignedStart.push(r.querySelector('input[type="time"]').value); }
+    });
+    var stops = Array.prototype.map.call($("#stops").querySelectorAll("input"), function (i) { return i.value.trim(); }).filter(Boolean);
+    var job = {
+      id: state.editing || ("j" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)),
+      type: type,
+      date: $("#f-date").value,
+      jobNum: $("#f-job").value.trim(),
+      start: $("#f-start").value,
+      roundTrip: type === "Transfer" && $("#f-round").checked,
+      end: $("#f-end").value,
+      dispatcher: $("#f-disp").value.trim(),
+      vehicle: $("#f-veh").value.trim(),
+      source: $("#f-src").value,
+      pickup: $("#f-pick").value.trim(),
+      flight: $("#f-flight").value.trim().toUpperCase(),
+      dropoff: $("#f-drop").value.trim(),
+      stops: stops,
+      assigned: assigned,
+      assignedStart: assignedStart,
+      miles: type === "Transfer" && milesRaw !== "" && !isNaN(Number(milesRaw)) ? Number(milesRaw) : null,
+      milesEst: type === "Transfer" && milesRaw !== "" && milesIsEst(),
+      pob: type === "Transfer" && !isC ? $("#f-pob").value : "",
+      reported: hasDelay && $("#f-reported").checked,
+      reportedOn: hasDelay && $("#f-reported").checked
+        ? ((state.editing && state.jobs[state.editing] && state.jobs[state.editing].reportedOn) || todayStr()) : "",
+      delay: hasDelay ? Math.round(Number($("#f-delay").value)) : null,
+      delayWhy: hasDelay ? $("#f-delaywhy").value.trim() : "",
+      status: st,
+      cxlDate: isC ? $("#f-cxldate").value : "",
+      cxlTime: isC ? $("#f-cxltime").value : "",
+      cxlBy: isC ? $("#f-cxlby").value.trim() : "",
+      enRoute: isC ? $("#f-enroute").value : "",
+      cxlNote: isC ? $("#f-cxlnote").value.trim() : "",
+      proofs: state.proofs.slice(),
+      price: st === "cxl_free" || priceRaw === "" ? null : Number(priceRaw),
+      paid: paid,
+      received: paid ? (recvRaw !== "" ? Number(recvRaw) : (priceRaw !== "" ? Number(priceRaw) : null)) : null,      paidDate: paid ? ($("#f-paiddate").value || todayStr()) : "",
+      notes: $("#f-notes").value.trim(),
+      updated: Date.now()
+    };
+    var wasEdit = !!state.editing;
+    persist(job);
+    resetForm();
+    toast(wasEdit ? "Changes saved" : "Job saved");
+    showView("jobs");
+  });
+
+  $("#delBtn").addEventListener("click", function () {
+    var id = state.editing, j = state.jobs[id];
+    askDelete("Delete this job?", j ? fmtDay(j.date) + (j.jobNum ? " · #" + j.jobNum : "") + (j.pickup ? " · " + j.pickup : "") : "This job.", function () {
+      deleteJob(id); resetForm(); toast("Job deleted"); showView("jobs");
+    });
+  });
+
+  // ---------- persistence ----------
+  function persist(job) {
+    state.jobs[job.id] = job; saveLocal(); refreshLists();
+    setPending(job.id, true);
+    if (db) pushPending();
+  }
+  function pushPending() {
+    if (!db || pushing) return Promise.resolve();
+    pushing = true;
+    var ids = getPending().slice();
+    var chain = Promise.resolve();
+    ids.forEach(function (id) {
+      chain = chain.then(function () {
+        var j = state.jobs[id];
+        if (!j) { setPending(id, false); return; }
+        return db.doc("jobs/" + id).set(j).then(function () { setPending(id, false); });
+      });
+    });
+    return chain.catch(function () { setSync("offline"); }).then(function () { pushing = false; updateBackupViews(); });
+  }
+  function onSnap(snap) {
+    var fromCache = snap.metadata.fromCache;
+    if (fromCache && snap.empty) return;
+    var remote = {};
+    snap.docs.forEach(function (d) { if (d.exists) remote[d.id] = d.data(); });
+    if (!fromCache) {
+      clearTimeout(loadTimer); setSync("synced");
+      if (snap.empty) Object.keys(state.jobs).forEach(function (id) { setPending(id, true); });
+    }
+    var merged = {}, k;
+    for (k in remote) merged[k] = remote[k];
+    getPending().forEach(function (id) { if (state.jobs[id]) merged[id] = state.jobs[id]; });
+    state.jobs = merged; saveLocal(); refreshLists();
+    if (!fromCache && getPending().length) pushPending();
+  }
+  function setSync(s) {
+    var t = { local: "This phone only", connecting: "Connecting", synced: "Cloud saved", offline: "Not synced" }[s];
+    $("#sync").dataset.s = s; $("#syncText").textContent = t;
+    updateBackupViews();
+  }
+
+  // ---------- list ----------
+  function sortedJobs() {
+    return Object.keys(state.jobs).map(function (k) { return state.jobs[k]; }).sort(function (a, b) {
+      return (b.date + (b.start || "")).localeCompare(a.date + (a.start || ""));
+    });
+  }
+  function refreshLists() {
+    var d = {};
+    sortedJobs().forEach(function (j) { if (j.dispatcher) d[j.dispatcher] = 1; });
+    fill($("#dl-disp"), Object.keys(d));
+    if (state.view === "jobs") renderList();
+    if (state.view === "report") renderReport();
+    if (state.view === "rides") renderRides();
+    if (state.view === "rates") { renderRates(); renderQuote(); }
+    updateBackupViews();
+  }
+  function fill(dlEl, arr) { dlEl.innerHTML = ""; arr.forEach(function (x) { var o = el("option"); o.value = x; dlEl.append(o); }); }
+
+  // Weeks run Monday to Sunday. "This week" also lists jobs dated later, but its totals stop at Sunday.
+  function rangeBounds() {
+    var t = todayStr(), m = mondayOf(t), r = state.range, far = "9999-12-31";
+    if (r === "custom") {
+      var cf = state.from || "", ct = state.to || far;
+      return { lo: cf, listHi: ct, sumHi: ct, label: "from " + (cf ? fmtDay(cf) : "the start") + " to " + (state.to ? fmtDay(state.to) : "today"), jobs: "Jobs" };
+    }
+    if (r === "7") return { lo: dAdd(t, -6), listHi: far, sumHi: t, label: "in the last 7 days", jobs: "Jobs, last 7 days" };
+    if (r === "week") return { lo: m, listHi: far, sumHi: dAdd(m, 6), label: "this week", jobs: "Jobs this week" };
+    if (r === "last") return { lo: dAdd(m, -7), listHi: dAdd(m, -1), sumHi: dAdd(m, -1), label: "last week", jobs: "Jobs last week" };
+    if (r === "30") return { lo: dAdd(t, -29), listHi: far, sumHi: t, label: "in the last 30 days", jobs: "Jobs, 30 days" };
+    return { lo: "", listHi: far, sumHi: far, label: "for all time", jobs: "Jobs, all time" };
+  }
+  function renderList() {
+    var all = sortedJobs(), rb = rangeBounds();
+    var month = all.filter(function (j) { return (!rb.lo || j.date >= rb.lo) && j.date <= rb.sumHi; });
+    var hrs = month.reduce(function (s, j) { return s + hoursOf(j); }, 0);
+    var got = month.reduce(function (s, j) { return s + recvOf(j); }, 0);
+    var owed = month.reduce(function (s, j) { return s + owedOf(j); }, 0);
+    $("#sum").textContent = month.length + (month.length === 1 ? " job" : " jobs") + " · " + hrs.toFixed(1) + " hours · " + rb.label + (state.filter !== "all" ? " · " + state.filter : "") + (state.pay !== "all" ? " · " + (state.pay === "pending" ? "To collect" : "Paid") : "");
+    updateFilterUI();
+    var q = state.q.toLowerCase();
+    // Only the last 7 days by default. "To collect" and search always look at everything, so unpaid money never hides.
+    var cutoff = rb.lo, upper = rb.listHi;
+    function payOk(j) { return state.pay === "all" || (state.pay === "paid") === isPaid(j); }
+    // Dispatcher filter: fill the picker with every dispatcher, and when one is chosen list all of their jobs from any date.
+    var dsel = $("#dispFilter"), dnames = {};
+    all.forEach(function (j) { if (j.dispatcher) dnames[j.dispatcher] = 1; });
+    if (state.disp) dnames[state.disp] = 1;
+    var dlist = Object.keys(dnames).sort(function (a, b) { return a.toLowerCase().localeCompare(b.toLowerCase()); });
+    if (dsel.options.length !== dlist.length + 1 || dlist.some(function (n, i) { return dsel.options[i + 1].value !== n; })) {
+      dsel.innerHTML = ""; var o0 = el("option", null, "All dispatchers"); o0.value = ""; dsel.append(o0);
+      dlist.forEach(function (n) { var o = el("option", null, n); o.value = n; dsel.append(o); });
+    }
+    dsel.value = state.disp;
+    function dispOk(j) { return !state.disp || (j.dispatcher || "") === state.disp; }
+    var rows = all.filter(function (j) {
+      if (!matchType(j, state.filter) || !dispOk(j)) return false;
+      if (!q) return payOk(j) && (state.disp || state.pay === "pending" || ((!cutoff || j.date >= cutoff) && j.date <= upper));
+      return [j.jobNum, j.dispatcher, j.flight, j.pickup, j.dropoff, j.vehicle, j.notes, j.cxlNote, j.cxlBy].concat(j.stops || [], j.assigned || []).join(" ").toLowerCase().indexOf(q) >= 0;
+    });
+    if (state.disp) {
+      var dOwed = rows.reduce(function (s, j) { return s + owedOf(j); }, 0), dGot = rows.reduce(function (s, j) { return s + recvOf(j); }, 0);
+      $("#sum").textContent = rows.length + (rows.length === 1 ? " job" : " jobs") + " · " + state.disp + " · all dates" + (state.filter !== "all" ? " · " + state.filter : "") + (state.pay !== "all" ? " · " + (state.pay === "pending" ? "To collect" : "Paid") : "") + " · " + fmtMoney(dOwed) + " to collect · " + fmtMoney(dGot) + " received";
+    }
+    var older = cutoff && !q && !state.disp && state.pay !== "pending" ? all.filter(function (j) { return matchType(j, state.filter) && payOk(j) && (j.date < cutoff || j.date > upper); }).length : 0;
+    var oldUnpaid = cutoff && !q && !state.disp && state.pay !== "pending" ?all.filter(function (j) { return !isPaid(j) && j.date < cutoff; }).length : 0;
+    var list = $("#list"); list.innerHTML = "";
+    var unrep = all.filter(function (j) { return isLate(j) && !j.reported; });
+    if (unrep.length && state.filter !== "Delayed") {
+      var ub = el("button", "unrep", unrep.length + (unrep.length === 1 ? " delay is" : " delays are") + " not reported to the dispatcher yet. Tap to review.");
+      ub.type = "button"; ub.addEventListener("click", function () { $('#filters .pill[data-f="Delayed"]').click(); });
+      list.append(ub);
+    }
+    if (oldUnpaid) {
+      var ob = el("button", "unrep soft", oldUnpaid + (oldUnpaid === 1 ? " older job is" : " older jobs are") + " still unpaid. Tap to see " + (oldUnpaid === 1 ? "it." : "them."));
+      ob.type = "button"; ob.addEventListener("click", function () { $('#payFilters .pill[data-pay="pending"]').click(); });
+      list.append(ob);
+    }
+    if (!all.length) {
+      var e = el("div", "empty");
+      e.append(el("h2", null, "No jobs yet"), el("p", null, "Log your first job on the New job tab. It will show up here by date."));
+      list.append(e); return;
+    }
+    if (!rows.length) {
+      var hiddenPaid = all.filter(isPaid).length;
+      list.append(el("div", "empty", state.pay === "pending" && !q && hiddenPaid ? "Nothing waiting for payment. Tap Paid or All jobs to see the " + hiddenPaid + " paid." : older ? "No jobs " + rb.label + ". Tap another range to see the " + older + " outside it." : "No jobs match."));
+      return;
+    }
+    if (state.pay === "pending" && !q) {
+      var nPaid = all.filter(function (j) { return isPaid(j) && matchType(j, state.filter); }).length;
+      if (nPaid) list.append(el("p", "hint", nPaid + " paid " + (nPaid === 1 ? "job is" : "jobs are") + " hidden. Search, or tap Paid or All jobs to see them."));
+    }
+    var lastDay = "";
+    rows.forEach(function (j) {
+      if (j.date !== lastDay) { list.append(el("div", "day", fmtDay(j.date))); lastDay = j.date; }
+      list.append(jobCard(j));
+    });
+    if (older) list.append(el("p", "hint", "Showing jobs " + rb.label + ". " + older + (older === 1 ? " job is" : " jobs are") + " outside this range and hidden. Tap another range to see " + (older === 1 ? "it." : "them.")));
+    if (stickBottom && state.view === "jobs") requestAnimationFrame(scrollBottom);
+  }
+  $("#rangeFilters").addEventListener("click", function (e) {
+    var b = e.target.closest(".pill"); if (!b) return;
+    state.range = b.dataset.r;
+    document.querySelectorAll("#rangeFilters .pill").forEach(function (p) { p.setAttribute("aria-pressed", p === b ? "true" : "false"); });
+    $("#customRange").hidden = state.range !== "custom";
+    if (state.range === "custom") {
+      if (!state.from) state.from = dAdd(todayStr(), -6);
+      if (!state.to) state.to = todayStr();
+      $("#cr-from").value = state.from; $("#cr-to").value = state.to;
+    }
+    renderList();
+  });
+  ["#cr-from", "#cr-to"].forEach(function (sel) {
+    $(sel).addEventListener("change", function () { state.from = $("#cr-from").value; state.to = $("#cr-to").value; renderList(); });
+  });
+  $("#sync").addEventListener("click", function () { showView("backup"); });
+  $("#r-gobackup").addEventListener("click", function () { showView("backup"); });
+  $("#bk-back").addEventListener("click", function () { showView("report"); });
+  $("#q").addEventListener("input", function (e) { state.q = e.target.value.trim(); stickBottom = false; renderList(); });
+  $("#payFilters").addEventListener("click", function (e) {
+    var b = e.target.closest(".pill"); if (!b) return;
+    state.pay = b.dataset.pay; stickBottom = true;
+    document.querySelectorAll("#payFilters .pill").forEach(function (p) { p.setAttribute("aria-pressed", p === b ? "true" : "false"); });
+    renderList();
+  });
+  $("#filters").addEventListener("click", function (e) {
+    var b = e.target.closest(".pill"); if (!b) return;
+    state.filter = b.dataset.f;
+    document.querySelectorAll("#filters .pill").forEach(function (p) { p.setAttribute("aria-pressed", p === b ? "true" : "false"); });
+    stickBottom = true;
+    renderList();
+  });
+
+  // ---------- job details sheet and filters ----------
+  function typeIcon(j) {
+    if (j.type === "Hourly") return '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>';
+    if (j.roundTrip) return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h13M14.5 4.5 18 8l-3.5 3.5M19 16H6M9.5 12.5 6 16l3.5 3.5"/></svg>';
+    return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12h15M14 6.5l5.5 5.5-5.5 5.5"/></svg>';
+  }
+  // One short money word per job on the list: the amount due, Paid, TBD or No charge.
+  function cardPay(j) {
+    if (isFree(j)) return "No charge";
+    if (j.paid) return recvOf(j) ? "Paid " + fmtMoney(recvOf(j)) : "Paid";
+    if (j.price == null) return j.status === "cxl_bill" ? "TBD" : "Pending";
+    return fmtMoney(j.price) + " due";
+  }
+  function goBtn(label, url) {
+    var a = el("a", "go"); a.href = url; a.target = "_blank"; a.rel = "noopener"; a.setAttribute("aria-label", label);
+    a.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 11.5 19.5 4.5l-7 15-2-6.5z"/></svg>';
+    return a;
+  }
+  // One job on the list: type, money state with a tick, times, job number, dispatcher, vehicle, route with direction links, flight link.
+  function jobCard(j) {
+    var hourly = j.type === "Hourly", cxl = isCxl(j), c = el("div", "jobcard" + (cxl ? " off" : ""));
+    var top = el("div", "jtop"), ic = el("span", "tbadge " + (hourly ? "h" : "t")), main = el("div", "jmain"), tl = el("div", "jtype");
+    ic.innerHTML = typeIcon(j);
+    tl.append(document.createTextNode(j.type + (j.roundTrip ? " · round trip" : "")));
+    if (j.jobNum) tl.append(el("span", "jnum", "#" + j.jobNum));
+    var hrs = cxl ? null : hoursBetween(j.start, j.end), tm;
+    if (hourly) tm = "Start " + fmtTime(j.start) + (j.end ? "  ·  End " + fmtTime(j.end) + (hrs != null ? "  ·  " + hrs + " h" : "") : "");
+    else tm = "Pick-up " + fmtTime(j.start) + (j.end ? "  ·  Drop-off " + fmtTime(j.end) : "");
+    main.append(tl);
+    var tw = el("div", "jtimew"); tw.append(el("div", "jtime", tm));
+    if (!hourly && !cxl) {
+      var ns = (j.stops || []).length;
+      tw.append(el("div", "jmiles" + (j.miles == null ? " none" : ""), j.miles != null
+        ? fmtMiles(j) + (j.roundTrip ? " · round trip, there and back" : " · pick-up to drop-off") + (ns ? " · via " + ns + (ns === 1 ? " stop" : " stops") : "") + (j.price != null && j.miles > 0 ? " · " + fmtMoney(j.price / j.miles) + " per mile" : "")
+        : "Miles not entered yet"));
+    }
+    if (isLate(j)) tw.append(el("div", "jnote late", "Delayed " + fmtDelay(j.delay) + (j.reported ? "" : ", not reported")));
+    else if (cxl) tw.append(el("div", "jnote", isFree(j) ? "Cancelled, no charge" : "Cancelled, billable"));
+    var pay = el("div", "jpay");
+    pay.append(el("span", "jprice" + (isFree(j) ? " mute" : j.paid ? " ok" : ""), cardPay(j)));
+    if (!isFree(j)) {
+      var tk = el("button", "tick" + (j.paid ? " on" : "")); tk.type = "button";
+      tk.setAttribute("aria-label", j.paid ? "Paid. Tap to mark pending" : "Mark as paid");
+      tk.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+      tk.addEventListener("click", function () {
+        var what = fmtDay(j.date) + (j.jobNum ? " · #" + j.jobNum : "") + (j.price != null ? " · " + fmtMoney(j.price) : "");
+        if (j.paid) askConfirm("Mark as pending?", what + ". It will count as unpaid again.", "Mark pending", function () { markPay(j.id); });
+        else askConfirm("Mark as paid?", what + (j.price != null ? "" : ". You will enter the amount next."), "Mark paid", function () { markPay(j.id); });
+      });
+      pay.append(tk);
+    }
+    top.append(ic, main, pay); c.append(top, tw);
+    var meta = el("div", "jmeta");
+    if (j.dispatcher) meta.append(el("span", null, j.dispatcher));
+    if (j.vehicle) meta.append(el("span", null, j.vehicle));
+    var fu = flightUrl(j.flight);
+    if (fu) {
+      var fa = el("a", "fchip"); fa.href = fu; fa.target = "_blank"; fa.rel = "noopener";
+      fa.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 14l8-2 3-8 2 .5-1 7.5 6 1.5v2l-6.5-.5L13 20l-2-.5.5-5z"/></svg>';
+      fa.append(document.createTextNode("Flight " + j.flight));
+      meta.append(fa);
+    }
+    if (meta.childNodes.length) c.append(meta);
+    var pts = [];
+    if (j.pickup) pts.push(["Pick-up", j.pickup]);
+    (j.stops || []).forEach(function (st, k) { pts.push(["Stop " + (k + 1), st]); });
+    if (j.dropoff) pts.push(["Drop-off", j.dropoff]);
+    if (pts.length) {
+      var rt = el("div", "rt");
+      pts.forEach(function (pt) {
+        var r = el("div", "rtrow"), tx = el("div", "rtxt");
+        tx.append(el("small", null, pt[0]), el("span", null, pt[1]));
+        r.append(el("span", "dot"), tx);
+        if (!cxl) r.append(goBtn("Directions to " + pt[0].toLowerCase(), mapsDir(pt[1])));
+        rt.append(r);
+      });
+      c.append(rt);
+    }
+    var det = el("button", "jdet", "Details"); det.type = "button";
+    det.addEventListener("click", function () { openJob(j.id); });
+    var foot = el("div", "jfoot"); foot.append(det); c.append(foot);
+    c.addEventListener("click", function (e) { if (!e.target.closest("a,button")) openJob(j.id); });
+    return c;
+  }
+  // A plain "are you sure" step, used before the tick on a card changes anything.
+  var okAction = null;
+  function askConfirm(title, text, label, action) {
+    $("#okTitle").textContent = title; $("#okText").textContent = text; $("#okYes").textContent = label;
+    okAction = action; $("#okDlg").hidden = false; $("#okYes").focus();
+  }
+  function closeConfirm() { $("#okDlg").hidden = true; okAction = null; }
+  $("#okNo").addEventListener("click", closeConfirm);
+  $("#okYes").addEventListener("click", function () { var a = okAction; closeConfirm(); if (a) a(); });
+  $("#okDlg").addEventListener("click", function (e) { if (e.target === this) closeConfirm(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !$("#okDlg").hidden) closeConfirm(); });
+  function markPay(id) {
+    var j = state.jobs[id]; if (!j) return;
+    closeJob();
+    var prev = Object.assign({}, j), undo = function () { persist(Object.assign({}, prev, { updated: Date.now() })); };
+    if (j.paid) { persist(Object.assign({}, j, { paid: false, received: null, paidDate: "", updated: Date.now() })); toast("Marked pending", undo); }
+    else if (j.price != null) { persist(Object.assign({}, j, { paid: true, received: j.price, paidDate: todayStr(), updated: Date.now() })); toast("Marked paid " + fmtMoney(j.price), undo); }
+    else {
+      loadIntoForm(j);
+      document.querySelector('input[name="pay"][value="paid"]').checked = true;
+      applyPay();
+      if (!$("#f-paiddate").value) $("#f-paiddate").value = todayStr();
+      $("#f-recv").focus();
+    }
+  }
+  function closeJob() { $("#jobSheet").hidden = true; }
+  function openJob(id) {
+    var j = state.jobs[id]; if (!j) return;
+    var box = $("#jobBody"); box.innerHTML = "";
+    var head = el("div", "jhead"), ic = el("span", "tbadge big " + (j.type === "Hourly" ? "h" : "t") + (isCxl(j) ? " off" : "")), ht = el("div", "jbody");
+    ic.innerHTML = typeIcon(j);
+    ht.append(el("b", null, j.type + (j.roundTrip ? ", round trip" : "")), el("small", null, fmtDay(j.date)));
+    head.append(ic, ht, el("span", "jprice" + (isFree(j) ? " mute" : j.paid ? " ok" : ""), payText(j)));
+    box.append(head);
+    function sec(rows) {
+      var g = el("div", "group");
+      rows.forEach(function (r) { if (!r[1]) return; var d = el("div", "drow"); d.append(el("small", null, r[0]), el("span", null, r[1])); g.append(d); });
+      if (g.childNodes.length) box.append(g);
+    }
+    var hrs = isCxl(j) ? null : hoursBetween(j.start, j.end), outcome = isCxl(j) ? (isFree(j) ? "Cancelled, no charge" : "Cancelled, billable") : "Completed";
+    sec([["Time", fmtTime(j.start) + (j.end ? " – " + fmtTime(j.end) + (hrs != null ? " (" + hrs + " h)" : "") : "")], ["Outcome", outcome], ["Job #", j.jobNum], ["Dispatcher", j.dispatcher], ["Vehicle", j.vehicle], ["Job came from", j.source === "Direct" ? "Direct customer" : j.source === "Affiliate" ? "Affiliate (middle man)" : ""], ["Flight", j.flight]]);
+    sec([["Pick-up", j.pickup], ["Stops", (j.stops || []).join("\n")], ["Drop-off", j.dropoff], ["Distance", j.miles != null ? fmtMiles(j) + (j.roundTrip ? " (round trip total)" : " (pick-up to drop-off)") : ""]]);
+    if (j.assigned && j.assigned.length) sec([["Assigned jobs", j.assigned.map(function (a, i) { var t = (j.assignedStart || [])[i]; return "#" + a + (t ? ", " + fmtTime(t) : ""); }).join("\n")]]);
+    if (j.type === "Transfer" && !isCxl(j)) sec([["Passenger on board", j.pob ? fmtTime(j.pob) : ""], ["Delay", j.delay > 0 ? fmtDelay(j.delay) + (j.delayWhy ? ", " + j.delayWhy : "") : ""], ["Reported to dispatcher", j.delay > GRACE ? (j.reported ? "Yes" + (j.reportedOn ? ", " + j.reportedOn : "") : "Not yet") : ""]]);
+    var sd = stmtDays(j);
+    sec([["Price", j.price != null ? fmtMoney(j.price) : (j.status === "cxl_bill" ? "Waiting for the statement" : "")], ["Per mile", j.price != null && j.miles > 0 ? fmtMoney(j.price / j.miles) + " per mile" : ""], ["Payment", isFree(j) ? "No charge" : j.paid ? "Paid" : "Pending"], ["Received", j.paid && j.received != null ? fmtMoney(j.received) : ""], ["Paid on", j.paid && j.paidDate ? fmtDay(j.paidDate) : ""], ["Statement", sd == null ? "" : sd >= 30 ? "Due, ask Source A" : "Awaiting statement"]]);
+    if (isCxl(j)) sec([["En route since", j.enRoute ? fmtTime(j.enRoute) : ""], ["Cancelled", (j.cxlTime ? fmtTime(j.cxlTime) : "") + (j.cxlBy ? (j.cxlTime ? ", by " : "By ") + j.cxlBy : "")], ["Cancelled on", j.cxlDate ? fmtDay(j.cxlDate) : ""], ["What the company said", j.cxlNote]]);
+    sec([["Notes", j.notes]]);
+    if ((j.proofs || []).length) { var ps = el("div", "proofstrip"); j.proofs.forEach(function (p) { ps.append(thumbBtn(p, true)); }); box.append(ps); }
+    var links = (isCxl(j) ? [] : navLinks(j)).slice(), fu = flightUrl(j.flight);
+    if (fu) links.push(["Flight " + j.flight + " status", fu]);
+    if (links.length) {
+      var nb = el("div", "navbar"); nb.style.padding = "0";
+      links.forEach(function (l) { var a = el("a", "navlink", l[0]); a.href = l[1]; a.target = "_blank"; a.rel = "noopener"; nb.append(a); });
+      box.append(nb);
+    }
+    var acts = el("div", "actions"), ed = el("button", "btn primary", "Edit job"), dl = el("button", "btn danger", "Delete job");
+    ed.type = "button"; dl.type = "button";
+    ed.addEventListener("click", function () { closeJob(); loadIntoForm(state.jobs[id]); });
+    dl.addEventListener("click", function () {
+      askDelete("Delete this job?", fmtDay(j.date) + (j.jobNum ? " · #" + j.jobNum : "") + (j.pickup ? " · " + j.pickup : ""), function () { closeJob(); deleteJob(id); refreshLists(); toast("Job deleted"); });
+    });
+    acts.append(ed);
+    if (!isFree(j)) { var pb = el("button", "btn", j.paid ? "Mark pending" : "Mark paid"); pb.type = "button"; pb.addEventListener("click", function () { markPay(id); }); acts.append(pb); }
+    acts.append(dl); box.append(acts);
+    $("#jobSheet").hidden = false; $("#jobSheet .sheet").scrollTop = 0;
+  }
+  $("#jobClose").addEventListener("click", closeJob);
+  $("#jobSheet").addEventListener("click", function (e) { if (e.target === this) closeJob(); });
+  function updateFilterUI() { $("#filterDot").hidden = state.filter === "all" && state.pay === "all" && state.range === "7" && !state.disp; }
+  $("#dispFilter").addEventListener("change", function () { state.disp = this.value; stickBottom = true; renderList(); });
+  $("#filterBtn").addEventListener("click", function () { $("#filterSheet").hidden = false; });
+  $("#filterDone").addEventListener("click", function () { $("#filterSheet").hidden = true; });
+  $("#filterSheet").addEventListener("click", function (e) { if (e.target === this) this.hidden = true; });
+  $("#filterReset").addEventListener("click", function () {
+    state.filter = "all"; state.pay = "all"; state.range = "7"; state.disp = "";
+    [["#filters", "f", "all"], ["#payFilters", "pay", "all"], ["#rangeFilters", "r", "7"]].forEach(function (x) {
+      document.querySelectorAll(x[0] + " .pill").forEach(function (p) { p.setAttribute("aria-pressed", p.dataset[x[1]] === x[2] ? "true" : "false"); });
+    });
+    $("#customRange").hidden = true; renderList();
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape") return;
+    if (!$("#jobSheet").hidden) closeJob(); else if (!$("#filterSheet").hidden) $("#filterSheet").hidden = true;
+  });
+
+  // ---------- rate guide: what jobs paid per hour and per mile, by vehicle ----------
+  var rateDays = 0; // 0 = all time
+  function rateJobs() {
+    var cut = rateDays ? dAdd(todayStr(), -(rateDays - 1)) : "";
+    return Object.keys(state.jobs).map(function (k) { return state.jobs[k]; }).filter(function (j) { return !isCxl(j) && j.price != null && j.price > 0 && (!cut || j.date >= cut); });
+  }
+  function vehKey(j) { return j.vehicle === "SUV" ? "SUV" : j.vehicle === "Sedan" ? "Sedan" : "Not set"; }
+  function newAcc() { return { n: 0, pay: 0, qty: 0, lo: Infinity, hi: 0 }; }
+  function addAcc(a, price, qty) { var r = price / qty; a.n++; a.pay += price; a.qty += qty; a.lo = Math.min(a.lo, r); a.hi = Math.max(a.hi, r); }
+  // Blended rates: total paid divided by total hours or miles, so long jobs count for more than short ones.
+  function rateStats(jobs) {
+    var s = { hourly: newAcc(), mile: newAcc(), thour: newAcc(), tr: { n: 0, pay: 0 } };
+    jobs.forEach(function (j) {
+      var hrs = hoursBetween(j.start, j.end);
+      if (j.type === "Hourly") { if (hrs > 0) addAcc(s.hourly, j.price, hrs); return; }
+      s.tr.n++; s.tr.pay += j.price;
+      if (j.miles > 0) addAcc(s.mile, j.price, j.miles);
+      if (hrs > 0) addAcc(s.thour, j.price, hrs);
+    });
+    return s;
+  }
+  function rateRow(title, sub, a, unit, qtyFmt) {
+    var r = a.n
+      ? grow(title, a.n + (a.n === 1 ? " job" : " jobs") + " · avg " + qtyFmt(a.qty / a.n), fmtMoney(a.pay / a.qty) + "/" + unit, a.hi - a.lo < 0.005 ? "" : fmtMoney(a.lo) + " – " + fmtMoney(a.hi))
+      : grow(title, sub, "—");
+    var vs = r.querySelector(".gv small"); if (vs) vs.style.color = "var(--muted)";
+    return r;
+  }
+  function renderRates() {
+    var jobs = rateJobs(), body = $("#rateBody"); body.innerHTML = "";
+    $("#rateNote").textContent = jobs.length
+      ? "Based on " + jobs.length + (jobs.length === 1 ? " completed job" : " completed jobs") + " with a price. Cancelled jobs are left out. The small range under each rate is the lowest and highest job."
+      : "No priced jobs in this period yet.";
+    ["SUV", "Sedan", "Not set"].forEach(function (v) {
+      var list = jobs.filter(function (j) { return vehKey(j) === v; });
+      if (!list.length && v === "Not set") return;
+      var s = rateStats(list), g = el("div", "group");
+      body.append(el("div", "cap", v === "Not set" ? "Vehicle not set" : v), g);
+      if (!list.length) { g.append(grow("No " + v + " jobs yet", "Jobs with a price show up here.", "—")); return; }
+      g.append(rateRow("Hourly jobs", "No hourly jobs with a price and end time yet", s.hourly, "h", function (x) { return x.toFixed(1) + " h"; }));
+      g.append(rateRow("Transfers, per mile", s.tr.n ? s.tr.n + " transfers. Add the miles to see this." : "No transfers yet", s.mile, "mi", function (x) { return Math.round(x) + " mi"; }));
+      g.append(rateRow("Transfers, per hour", s.tr.n ? "Add a drop-off time to transfers to see this." : "No transfers yet", s.thour, "h", function (x) { return x.toFixed(1) + " h"; }));
+      if (s.tr.n) g.append(grow("Average transfer price", s.tr.n + (s.tr.n === 1 ? " transfer" : " transfers"), fmtMoney(s.tr.pay / s.tr.n)));
+    });
+  }
+  function renderQuote() {
+    var veh = document.querySelector('input[name="qveh"]:checked').value, type = document.querySelector('input[name="qtype"]:checked').value;
+    $("#q-milesWrap").hidden = type === "Hourly";
+    var hrs = parseFloat($("#q-hours").value), mi = parseFloat($("#q-miles").value), out = $("#q-out"), est = [];
+    var s = rateStats(rateJobs().filter(function (j) { return vehKey(j) === veh; }));
+    out.innerHTML = "";
+    function add(label, a, qty, unit) { if (a.n && qty > 0) est.push({ label: label, v: qty * a.pay / a.qty, lo: qty * a.lo, hi: qty * a.hi, rate: fmtMoney(a.pay / a.qty) + "/" + unit, n: a.n }); }
+    if (type === "Hourly") add(hrs + " hours", s.hourly, hrs, "h");
+    else { add(mi + " miles", s.mile, mi, "mi"); add(hrs + " hours", s.thour, hrs, "h"); }
+    if (!est.length) {
+      out.append(grow("No ballpark yet", type === "Hourly"
+        ? (hrs > 0 ? "No " + veh + " hourly jobs with a price and end time yet." : "Enter the hours.")
+        : (mi > 0 || hrs > 0 ? "No " + veh + " transfers with that information yet." : "Enter the miles and, if you can, the hours."), "—"));
+      return;
+    }
+    est.forEach(function (e) { out.append(grow(e.label + " at " + e.rate, (e.hi - e.lo < 0.01 ? "based on " + e.n + (e.n === 1 ? " job" : " jobs") : "usually " + fmtMoney(e.lo) + " – " + fmtMoney(e.hi)), fmtMoney(e.v))); });
+    var avg = est.reduce(function (a, e) { return a + e.v; }, 0) / est.length;
+    var key = grow("Ballpark price", est.length > 1 ? "average of the two" : "from your own jobs", fmtMoney(avg));
+    key.classList.add("key"); out.append(key);
+  }
+  $("#rateRange").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    rateDays = Number(b.dataset.d);
+    document.querySelectorAll("#rateRange button").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+    renderRates(); renderQuote();
+  });
+  document.querySelectorAll('input[name="qveh"], input[name="qtype"]').forEach(function (r) { r.addEventListener("change", renderQuote); });
+  $("#q-hours").addEventListener("input", renderQuote);
+  $("#q-miles").addEventListener("input", renderQuote);
+  $("#r-gorates").addEventListener("click", function () { showView("rates"); });
+  $("#rt-back").addEventListener("click", function () { showView("report"); });
+
+  // ---------- price calculator: transfer quotes from distance, time of day, airport and the drive home ----------
+  var CALC_DEFAULTS = { v: 3, base: 150, basemi: 10, earlyadd: 0.5, reg: 5, rtrate: 4, airgov: 6, cap: 30, speedcity: 25, speedhwy: 55, longh: 10, over: 260, from: "03:00", to: "05:30", diesel: 5.5, round: 5, mpghw: 19, mpgcity: 14, airfee: 50, disc: 20, hrate: 115, minh: 3, sedan: 20, retshare: 0, retfree: 25, citymi: 25, home: "" };
+  var CALC_NUM = ["base", "basemi", "earlyadd", "airgov", "reg", "rtrate", "cap", "speedcity", "speedhwy", "longh", "over", "diesel", "round", "mpghw", "mpgcity", "disc", "hrate", "minh", "sedan", "citymi"];
+  var calcQuoteDirty = false;
+  var calcRetSet = null; // {key, val}: a return fee typed by hand for the current miles, time and return miles
+  function calcSettings() {
+    var st = lsGet("cjl.calc", {});
+    if (!st || typeof st !== "object") st = {};
+    return Object.assign({}, calcBase(), st);
+  }
+  // Starting values: the built-in rates, overridden by the defaults the user saved with "Save these as my defaults".
+  function calcBase() {
+    var d = lsGet("cjl.calcdef", {});
+    if (!d || typeof d !== "object") d = {};
+    return Object.assign({}, CALC_DEFAULTS, d);
+  }
+  function homePlace() { return String(calcSettings().home || "").trim(); }
+  function fillCalcSettings() {
+    var s = calcSettings();
+    CALC_NUM.forEach(function (k) { $("#cs-" + k).value = s[k]; });
+    $("#cs-from").value = s.from; $("#cs-to").value = s.to; $("#c-airfee").value = s.airfee; $("#cs-home").value = s.home || "";
+    $("#c-over").value = s.over;
+  }
+  function readCalcSettings() {
+    var s = {}, B = calcBase();
+    CALC_NUM.forEach(function (k) { var v = parseFloat($("#cs-" + k).value); s[k] = isNaN(v) || v < 0 ? B[k] : v; });
+    s.home = ($("#cs-home").value || "").trim();
+    if (s.round < 1) s.round = 1;
+    if (s.mpghw < 1) s.mpghw = B.mpghw;
+    if (s.mpgcity < 1) s.mpgcity = B.mpgcity;
+    s.from = $("#cs-from").value || B.from; s.to = $("#cs-to").value || B.to;
+    s.retshare = 0; s.retfree = 25; // no return fee
+    if (s.cap > 100) s.cap = 100;
+    if (s.speedcity < 1) s.speedcity = B.speedcity;
+    if (s.speedhwy < 1) s.speedhwy = B.speedhwy;
+    s.v = 3;
+    var af = parseFloat($("#c-airfee").value); s.airfee = isNaN(af) || af < 0 ? B.airfee : af;
+    return s;
+  }
+  function hmMin(t) { var p = String(t || "").split(":"); return p.length < 2 ? null : (+p[0]) * 60 + (+p[1]); }
+  function money0(n) { return "$" + Number(n).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 }); }
+  function calcRound(n) { return Math.round(n * 100) / 100; }
+  function calcRoundRound() { return $("#c-round").checked; }
+  function calcMiles() { var v = parseFloat($("#c-miles").value); return isNaN(v) || v < 0 ? 0 : v; }
+  // Return fee for a one-way ride: the empty miles back home at a share (25%) of the per-mile rate of that ride. Rides under 25 miles have no return fee.
+  function retTier(s, m, rate, trip) {
+    if (!(m > 0) || trip < s.retfree) return null;
+    var pm = rate * s.retshare / 100;
+    return { fee: m * pm, perMile: pm };
+  }
+  function calcType() { return document.querySelector('input[name="ctype"]:checked').value; }
+  function calcSrc() { return document.querySelector('input[name="csrc"]:checked').value; }
+  function calcResult() {
+    var s = readCalcSettings(), hourly = calcType() === "Hourly", aff = calcSrc() === "Affiliate";
+    var M = hourly ? 0 : calcMiles(), rt = !hourly && calcRoundRound(), t = hmMin($("#c-time").value), out = { s: s, hourly: hourly, aff: aff, miles: M, rt: rt };
+    var a = hmMin(s.from), b = hmMin(s.to);
+    out.early = t != null && a != null && b != null && t >= a && t < b;
+    out.rate = (rt ? s.rtrate : s.reg) + (out.early ? s.earlyadd : 0);
+    out.timeKnown = t != null;
+    var extraMi = Math.max(0, M - s.basemi);
+    out.base = M > 0 ? s.base : 0; out.extraMi = extraMi; out.extra = calcRound(extraMi * out.rate);
+    out.hours = parseFloat($("#c-hours").value); if (isNaN(out.hours) || out.hours < 0) out.hours = 0;
+    out.billH = hourly && out.hours > 0 ? Math.max(out.hours, s.minh) : 0;
+    out.hourPay = calcRound(out.billH * s.hrate);
+    out.ready = hourly ? out.billH > 0 : M > 0;
+    out.core = hourly ? out.hourPay : calcRound(out.base + out.extra);
+    out.sedan = document.querySelector('input[name="cveh"]:checked').value === "Sedan";
+    // Sedan and dispatcher discounts add up, but together never go past the cap (30%).
+    var spct = out.sedan ? Math.min(100, s.sedan) : 0, apct = aff ? Math.min(100, s.disc) : 0, both = spct > 0 && apct > 0;
+    var tot = both ? Math.min(s.cap, spct + apct) : spct + apct;
+    out.capped = both && spct + apct > s.cap;
+    out.spct = both ? Math.round(tot * spct / (spct + apct) * 10) / 10 : spct;
+    out.pct = both ? Math.round((tot - out.spct) * 10) / 10 : apct;
+    out.sdisc = calcRound(out.core * out.spct / 100);
+    out.disc = calcRound(out.core * out.pct / 100);
+    out.air = $("#c-air").checked ? s.airfee : 0;
+    out.airgov = $("#c-air").checked ? s.airgov : 0;
+    var pk = parseFloat($("#c-park").value); out.park = $("#c-air").checked && !isNaN(pk) && pk > 0 ? pk : 0;
+    out.ret = parseFloat($("#c-ret").value); if (isNaN(out.ret) || out.ret < 0) out.ret = 0;
+    out.tier = !hourly && !rt ? retTier(s, out.ret, out.rate, M) : null;
+    out.retAuto = out.tier ? calcRound(out.tier.fee) : 0;
+    out.retKey = M + "|" + out.ret + "|" + out.rate;
+    out.retSet = !hourly && !rt && calcRetSet && calcRetSet.key === out.retKey ? calcRetSet.val : null;
+    out.retFee = out.retSet != null ? out.retSet : out.retAuto;
+    out.retApplies = out.retFee > 0;
+    // Driving time for the whole day (a one-way ride also drives home empty), long day warning and overnight costs.
+    function legH(mi) { return Math.min(mi, s.citymi) / s.speedcity + Math.max(0, mi - s.citymi) / s.speedhwy; }
+    out.driveH = hourly || M <= 0 ? 0 : rt ? 2 * legH(M / 2) : 2 * legH(M);
+    out.longDay = !hourly && out.driveH > s.longh;
+    out.overOn = $("#c-overOn").checked;
+    var ov = parseFloat($("#c-over").value);
+    out.over = out.overOn && !hourly && !isNaN(ov) && ov > 0 ? ov : 0;
+    out.effH = s.hrate * (1 - (out.spct + out.pct) / 100);
+    out.discCore = calcRound(out.core - out.sdisc - out.disc);
+    out.rtHours = rt && out.effH > 0 ? out.discCore / out.effH : 0;
+    out.sub = calcRound(out.core - out.sdisc - out.disc + out.air + out.airgov + out.park + out.retFee + out.over);
+    out.sugg = out.sub > 0 ? Math.ceil(out.sub / s.round - 1e-9) * s.round : 0;
+    out.gal = hourly ? 0 : (Math.min(M, s.basemi) / s.mpgcity) + (extraMi / s.mpghw) + (!rt && out.ret > 0 ? out.ret / s.mpghw : 0);
+    out.fuel = calcRound(out.gal * s.diesel);
+    return out;
+  }
+  function renderCalc() {
+    var r = calcResult(), s = r.s, g = $("#c-out"); g.innerHTML = "";
+    var rt = r.rt, h = r.hourly;
+    ["#c-dropLab", "#c-roundLab", "#c-milesRow", "#c-milesTip"].forEach(function (id) { $(id).hidden = h; });
+    $("#c-hoursWrap").hidden = !h;
+    $("#c-retWrap").hidden = h || rt || s.retshare <= 0;
+    $("#c-overWrap").hidden = h || !(r.longDay || r.overOn);
+    $("#c-airWrap").hidden = !$("#c-air").checked; $("#c-parkWrap").hidden = !$("#c-air").checked;
+    $("#c-srcTip").textContent = r.aff
+      ? "Dispatcher job: " + r.pct + "% comes off the " + (h ? "hourly" : "mileage") + " price so they can earn on the job. The airport fee and extras are not discounted." + (r.capped ? " Sedan and dispatcher discounts together are capped at " + s.cap + "%." : "")
+      : "Customer job: full price, no discount.";
+    $("#c-hoursTip").textContent = "Direct rate " + money0(s.hrate) + "/h, minimum " + s.minh + " hours." + (r.aff ? " Affiliate rate " + money0(calcRound(s.hrate * (1 - r.pct / 100))) + "/h." : "");
+    $("#c-milesTip").textContent = rt
+      ? "Round trip: enter the miles there and back (ticking the box doubles the number for you). With stops, use the Maps total."
+      : "Miles from the pick-up to the drop-off. Open in Maps draws the route.";
+    if (!h && !rt) {
+      $("#c-retTip").textContent = r.miles > 0 && r.miles < s.retfree
+        ? "The ride is under " + s.retfree + " miles, so there is no return fee."
+        : r.ret <= 0
+        ? "One way rides of " + s.retfree + " miles or more get a return fee. Enter the miles from the drop-off back to " + (homePlace() || "your home base") + "."
+        : "Return fee " + money0(r.retFee) + ": " + r.ret + " miles back at " + money0(r.tier.perMile) + " per mile, which is " + s.retshare + "% of the " + money0(r.rate) + " rate.";
+    }
+    if (!h && !rt) {
+      var rf = $("#c-retfee");
+      if (r.retSet == null && document.activeElement !== rf) rf.value = r.retAuto > 0 ? r.retAuto : "";
+      if (r.retSet != null) $("#c-retTip").textContent = "You set the return fee to " + money0(r.retSet) + (r.retAuto > 0 ? " (calculated " + money0(r.retAuto) + ")" : "") + ". Type another number, or tap Use calculated.";
+    }
+    $("#c-warn").innerHTML = "";
+    function warnBox(title, text) { var w = el("div", "warnbox"); w.append(el("b", null, title), document.createTextNode(text)); $("#c-warn").append(w); }
+    $("#c-capout").hidden = !r.ready;
+    if (!r.ready) { $("#c-heroV").textContent = "—"; $("#c-heroS").textContent = h ? "Enter the hours to see the price." : "Enter the miles to see the price."; $("#c-add").disabled = true; setCalcQuote(null); return; }
+    $("#c-add").disabled = false;
+    if (h) {
+      g.append(grow(r.billH + " hours at " + money0(s.hrate) + "/h", r.billH > r.hours ? "minimum of " + s.minh + " hours applies" : "direct rate", money0(r.hourPay)));
+    } else {
+      g.append(grow("First " + s.basemi + " miles", "flat price", money0(r.base)));
+      if (r.extraMi > 0) g.append(grow(r.extraMi.toLocaleString(undefined, { maximumFractionDigits: 1 }) + " more miles at " + money0(r.rate) + "/mi",
+        rt ? "round trip rate on the total miles" + (r.early ? ", includes the " + money0(s.earlyadd) + " early-morning extra" : "") : r.early ? "early rate (pick-up " + fmtTime($("#c-time").value) + ")" : r.timeKnown ? "regular rate (pick-up " + fmtTime($("#c-time").value) + ")" : "regular rate. Add the pick-up time to check the early rate.", money0(r.extra)));
+    }
+    if (r.sedan) g.append(grow("Sedan discount " + r.spct + "%", "sedan requests expect a lower price, off " + money0(r.core), "−" + money0(r.sdisc)));
+    if (r.aff) g.append(grow("Dispatcher discount " + r.pct + "%", "off " + money0(r.core) + (r.capped ? ", capped with the sedan discount at " + s.cap + "% together" : ""), "−" + money0(r.disc)));
+    if (r.air) g.append(grow("Airport meet and greet", "service lump sum: waiting, luggage, flight tracking", money0(r.air)));
+    if (r.airgov) g.append(grow("Airport fee", "pick-up fee charged by the airport", money0(r.airgov)));
+    if (r.park) g.append(grow("Parking", "actual cost, passed on", money0(r.park)));
+    if (r.over) g.append(grow("Overnight costs", "hotel and meals, set by you", money0(r.over)));
+    if (r.retApplies) g.append(grow("Drive back home", r.retSet != null ? "set by you" + (r.retAuto > 0 ? ", calculated " + money0(r.retAuto) : "") : r.ret + " mi at " + money0(r.tier.perMile) + "/mi (" + s.retshare + "% of the per-mile rate)", money0(r.retFee)));
+    else if (r.retSet === 0 && r.retAuto > 0) g.append(grow("Return fee skipped", "calculated " + money0(r.retAuto) + ", not added", money0(0)));
+    if (rt) g.append(grow("Round trip", "priced on the miles there and back at " + money0(r.rate) + "/mi, no return add-on", ""));
+    $("#c-heroV").textContent = money0(r.sugg);
+    $("#c-heroS").textContent = (r.aff ? "Dispatcher price" : "Customer price") + (r.sub === r.sugg ? "" : " · calculated " + money0(r.sub) + ", rounded up to the next " + money0(s.round));
+    if (rt) {
+      var wait = r.rtHours - r.driveH;
+      warnBox("Round trip with waiting?", "This price pays for about " + r.rtHours.toFixed(1) + " h at " + money0(calcRound(r.effH)) + "/h. Driving takes about " + r.driveH.toFixed(1) + " h, so it covers " +
+        (wait > 0.25 ? "about " + wait.toFixed(1) + " h of waiting" : "almost no waiting") + ". If the wait will be longer, quote hourly instead (minimum " + s.minh + " h = " + money0(calcRound(s.minh * r.effH)) + ").");
+    }
+    if (r.longDay) {
+      warnBox("Long day: about " + r.driveH.toFixed(1) + " h of driving", "That is more than " + s.longh + " h including the drive home. Add overnight costs above, or quote hourly: " + money0(calcRound(Math.max(r.driveH, s.minh) * r.effH)) + " for the driving alone at " + money0(calcRound(r.effH)) + "/h.");
+    }
+    if (!h) {
+      var f = grow("Your fuel on this job", r.gal.toFixed(1) + " gal of fuel at " + money0(s.diesel) + ". City MPG " + s.mpgcity + " for the first " + s.basemi + " miles, highway " + s.mpghw + " after.", money0(r.fuel));
+      f.classList.add("sub"); g.append(f);
+      var left = grow("Left after fuel", "before time, wear and parking", money0(calcRound(r.sugg - r.fuel))); left.classList.add("sub"); g.append(left);
+    }
+    setCalcQuote(r.sugg);
+  }
+  function setCalcQuote(v) {
+    if (calcQuoteDirty && v != null) return;
+    $("#c-quote").value = v == null ? "" : v;
+  }
+  $("#c-quote").addEventListener("input", function () { calcQuoteDirty = $("#c-quote").value !== ""; });
+  ["#c-time", "#c-miles", "#c-hours", "#c-air", "#c-airfee", "#c-park", "#c-ret", "#c-overOn", "#c-over"].forEach(function (id) { $(id).addEventListener("input", renderCalc); $(id).addEventListener("change", renderCalc); });
+  CALC_NUM.concat(["from", "to", "home"]).forEach(function (k) {
+    $("#cs-" + k).addEventListener("input", function () { lsSet("cjl.calc", readCalcSettings()); renderCalc(); });
+  });
+  $("#c-airfee").addEventListener("input", function () { var s = readCalcSettings(); lsSet("cjl.calc", s); });
+  $("#cs-savedef").addEventListener("click", function () { lsSet("cjl.calcdef", readCalcSettings()); lsSet("cjl.calc", {}); fillCalcSettings(); renderCalc(); toast("Saved as your defaults"); });
+  $("#cs-default").addEventListener("click", function () { lsSet("cjl.calc", {}); fillCalcSettings(); renderCalc(); toast("Back to your defaults"); });
+  $("#cs-factory").addEventListener("click", function () { lsSet("cjl.calc", {}); lsSet("cjl.calcdef", {}); fillCalcSettings(); renderCalc(); toast("Original rates restored"); });
+  // Ticking Round trip doubles the miles (and unticking halves them), same as the job form.
+  $("#c-round").addEventListener("change", function () {
+    var f = $("#c-miles"), v = f.value.trim(), n = Number(v);
+    if (v !== "" && !isNaN(n) && n > 0) f.value = String(Math.round(n * (this.checked ? 2 : 0.5) * 10) / 10);
+    calcQuoteDirty = false; renderCalc();
+  });
+  ["#c-time", "#c-miles", "#c-hours"].forEach(function (id) { $(id).addEventListener("input", function () { calcQuoteDirty = false; }); });
+  ["#c-air", "#c-airfee", "#c-ret", "#c-overOn", "#c-over", "#cs-rtrate", "#cs-cap", "#cs-speedcity", "#cs-speedhwy", "#cs-longh", "#cs-over", "#cs-base", "#cs-basemi", "#cs-earlyadd", "#cs-airgov", "#c-park", "#cs-reg", "#cs-from", "#cs-to", "#cs-round", "#cs-disc", "#cs-hrate", "#cs-minh", "#cs-sedan"].forEach(function (id) { $(id).addEventListener("input", function () { calcQuoteDirty = false; }); });
+  $("#c-air").addEventListener("change", function () { calcQuoteDirty = false; });
+  $("#c-maps").addEventListener("click", function () {
+    var a = $("#c-pick").value.trim(), b = $("#c-drop").value.trim(), rt = $("#c-round").checked;
+    this.href = b ? mapsDir(rt && a ? a : b, a, rt && b ? [b] : []) : "https://www.google.com/maps";
+  });
+  $("#c-retmaps").addEventListener("click", function () {
+    var b = $("#c-drop").value.trim();
+    var hp = homePlace();
+    this.href = !hp ? (b ? mapsDir(b) : "https://www.google.com/maps") : b ? mapsDir(hp, b) : "https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=" + encodeURIComponent(hp);
+  });
+  function resetCalc() {
+    ["#c-time", "#c-pick", "#c-drop", "#c-miles", "#c-hours", "#c-flight", "#c-ret", "#c-park"].forEach(function (id) { $(id).value = ""; });
+    $("#c-date").value = todayStr(); $("#c-round").checked = false; $("#c-air").checked = false; $("#c-overOn").checked = false;
+    document.querySelector('input[name="cveh"][value="SUV"]').checked = true;
+    document.querySelector('input[name="ctype"][value="Transfer"]').checked = true;
+    document.querySelector('input[name="csrc"][value="Direct"]').checked = true;
+    calcRetSet = null; $("#c-retfee").value = ""; calcQuoteDirty = false; fillCalcSettings(); renderCalc();
+  }
+  $("#c-retfee").addEventListener("input", function () {
+    var v = this.value.trim(), n = parseFloat(v);
+    calcRetSet = v === "" || isNaN(n) || n < 0 ? null : { key: calcResult().retKey, val: n };
+    calcQuoteDirty = false; renderCalc();
+  });
+  $("#c-retskip").addEventListener("click", function () { calcRetSet = { key: calcResult().retKey, val: 0 }; $("#c-retfee").value = "0"; calcQuoteDirty = false; renderCalc(); });
+  $("#c-retuse").addEventListener("click", function () { calcRetSet = null; calcQuoteDirty = false; renderCalc(); });
+  $("#c-reset").addEventListener("click", resetCalc);
+  document.querySelectorAll('input[name="cveh"], input[name="ctype"], input[name="csrc"]').forEach(function (r) { r.addEventListener("change", function () { calcQuoteDirty = false; renderCalc(); }); });
+  $("#c-add").addEventListener("click", function () {
+    var r = calcResult(), q = parseFloat($("#c-quote").value), asked = r.sugg;
+    resetForm();
+    document.querySelector('input[name="jtype"][value="' + (r.hourly ? "Hourly" : "Transfer") + '"]').checked = true;
+    $("#f-date").value = $("#c-date").value || todayStr();
+    $("#f-start").value = $("#c-time").value;
+    $("#f-pick").value = $("#c-pick").value.trim(); $("#f-drop").value = r.hourly ? "" : $("#c-drop").value.trim();
+    setVehicle(document.querySelector('input[name="cveh"]:checked').value);
+    $("#f-src").value = r.aff ? "Affiliate" : "Direct";
+    if (r.hourly) {
+      var st = hmMin($("#c-time").value);
+      if (st != null && r.hours > 0) { var e = (st + Math.round(r.hours * 60)) % 1440; $("#f-end").value = String(Math.floor(e / 60)).padStart(2, "0") + ":" + String(e % 60).padStart(2, "0"); }
+    } else {
+      $("#f-round").checked = r.rt;
+      $("#f-miles").value = r.miles > 0 ? String(r.miles) : "";
+      $("#f-flight").value = $("#c-air").checked ? $("#c-flight").value.trim() : "";
+    }
+    $("#f-price").value = isNaN(q) ? "" : String(q);
+    var how = r.hourly
+      ? r.billH + " h x " + money0(r.s.hrate)
+      : "first " + r.s.basemi + " mi " + money0(r.base) + (r.extraMi > 0 ? ", " + r.extraMi + " mi x " + money0(r.rate) : "");
+    $("#f-notes").value = (r.aff ? "Dispatcher job (affiliate)" : "Customer job (direct)") + ". Asked " + money0(asked) + (isNaN(q) ? "" : ", agreed " + money0(q)) + ". " +
+      how + (r.sedan ? ", minus " + r.spct + "% sedan discount" : "") + (r.aff ? ", minus " + r.pct + "% affiliate discount" : "") + (r.air ? ", airport meet and greet " + money0(r.air) + ", airport fee " + money0(r.airgov) + (r.park ? ", parking " + money0(r.park) : "") : "") + (r.over ? ", overnight " + money0(r.over) : "") + (r.retApplies ? ", return " + r.ret + " mi " + money0(r.retFee) : "") + ".";
+    updateFlight(); applyType(); applyPay();
+    showView("new");
+    toast("Filled in. Check it and tap Save job.");
+  });
+  $("#r-gocalc").addEventListener("click", function () { showView("calc"); });
+  $("#c-back").addEventListener("click", function () { showView("report"); });
+
+  // ---------- backup ----------
+  function daysSinceBackup() {
+    var t = lsGet("cjl.lastBackup", null);
+    return t == null ? null : (Date.now() - t) / 86400000;
+  }
+  function updateBackupViews() {
+    var n = Object.keys(state.jobs).length, d = daysSinceBackup();
+    var due = n > 0 && (d == null || d >= BACKUP_DAYS);
+    var note = $("#backupNotice");
+    note.hidden = !due || state.view === "backup";
+    $("#r-bklast").textContent = d == null ? "No file backup yet" : "Last file backup: " + (d < 1 ? "today" : Math.floor(d) + (Math.floor(d) === 1 ? " day ago" : " days ago"));
+    $("#backupNoticeText").textContent = d == null ? "No file backup yet. Download one now." : "Last file backup was " + Math.floor(d) + " days ago.";
+    if (state.view === "backup") renderBackup();
+  }
+  function renderBackup() {
+    var n = Object.keys(state.jobs).length, t = lsGet("cjl.lastBackup", null);
+    $("#bk-count").textContent = n; $("#bk-proofs").textContent = proofCount();
+    var s = $("#sync").dataset.s;
+    $("#bk-cloud").textContent = { synced: "On, up to date", connecting: "Connecting", offline: "Not reachable", local: "Off (this phone only)" }[s];
+    $("#bk-last").textContent = t ? new Date(t).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "Never";
+    $("#bk-btn").disabled = !dl || n === 0; $("#bk-csv").disabled = !dl || n === 0;
+    if (!dl) $("#bk-msg").textContent = "Downloads are not available in this view. Try again in your phone browser.";
+    else if (n === 0) $("#bk-msg").textContent = "Log a job first.";
+  }
+  $("#noticeGo").addEventListener("click", function () { if (dl) doBackup(); else showView("backup"); });
+
+  function csvCell(v) { v = v == null ? "" : String(v); return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+  var STATUS_TXT = { done: "Completed", cxl_bill: "Cancelled - billable", cxl_free: "Cancelled - no charge" };
+  // names maps a proof's asset id to its file name inside the backup ZIP; without it (report export) the cell only counts proofs.
+  function buildCsv(list, names, withRides) {
+    var jobs = (list || sortedJobs()).slice().sort(function (a, b) { return (a.date + (a.start || "")).localeCompare(b.date + (b.start || "")); });
+    var maxStops = Math.max(5, jobs.reduce(function (m, j) { return Math.max(m, (j.stops || []).length); }, 0));
+    var maxAssigned = Math.max(4, jobs.reduce(function (m, j) { return Math.max(m, (j.assigned || []).length); }, 0));
+    var head = ["Date", "Job #", "Job Type", "Dispatcher", "Vehicle Requested", "Start Time", "End Time", "Hours", "Pick-up Location"];
+    for (var i = 1; i <= maxStops; i++) head.push("Stop " + i);
+    head.push("Drop-off Location");
+    for (var a = 1; a <= maxAssigned; a++) head.push("Assigned Job " + a);
+    for (var a2 = 1; a2 <= maxAssigned; a2++) head.push("Assigned Start " + a2);
+    head.push("POB Time", "Delay (min)", "Delay Reason", "Delay Reported", "Delay Reported On", "Miles", "Miles Estimated", "Price ($)", "Payment Status", "Amount Received ($)", "Date Received", "Notes", "Flight", "Round Trip", "Status", "Cancelled On", "Cancelled Time", "Cancelled By", "En Route Since", "Cancellation Note", "Proof Files", "Job Source");
+    var lines = [head.map(csvCell).join(",")];
+    jobs.forEach(function (j) {
+      var h = j.type === "Hourly" && !isCxl(j) ? hoursBetween(j.start, j.end) : null;
+      var r = [j.date, j.jobNum, j.type, j.dispatcher, j.vehicle, fmtTime(j.start), fmtTime(j.end), h == null ? "" : h, j.pickup];
+      for (var k = 0; k < maxStops; k++) r.push((j.stops || [])[k] || "");
+      r.push(j.dropoff);
+      for (var m = 0; m < maxAssigned; m++) r.push((j.assigned || [])[m] || "");
+      for (var m2 = 0; m2 < maxAssigned; m2++) r.push((j.assigned || [])[m2] && (j.assignedStart || [])[m2] ? fmtTime(j.assignedStart[m2]) : "");
+      r.push(j.type === "Transfer" && j.pob ? fmtTime(j.pob) : "", j.type === "Transfer" && j.delay > 0 ? j.delay : "", j.type === "Transfer" && j.delay > 0 ? j.delayWhy || "" : "", j.reported ? "Yes" : "", j.reported ? j.reportedOn || "" : "", j.miles == null ? "" : j.miles, j.miles != null && j.milesEst ? "Yes" : "", j.price == null ? "" : j.price, isFree(j) ? "No charge" : j.paid ? "Paid" : "Pending", j.paid && j.received != null ? j.received : "", j.paid ? (j.paidDate || "") : "", j.notes, j.flight || "", j.roundTrip ? "Yes" : "",
+        STATUS_TXT[j.status] || STATUS_TXT.done, j.cxlDate || "", j.cxlTime ? fmtTime(j.cxlTime) : "", j.cxlBy || "", j.enRoute ? fmtTime(j.enRoute) : "", j.cxlNote || "",
+        (j.proofs || []).length ? (names ? j.proofs.map(function (p) { return names[p.id] || ""; }).filter(Boolean).join("; ") : j.proofs.length + " on file") : "", j.source || "");
+      lines.push(r.map(csvCell).join(","));
+    });
+    if (withRides && typeof sortedRides === "function") {
+      var rs = sortedRides().slice().reverse();
+      if (rs.length) {
+        lines.push("", csvCell("Rideshare weeks"), ["Company", "Week Start", "Week End", "Amount ($)", "Notes"].map(csvCell).join(","));
+        rs.forEach(function (r) { lines.push([r.company, r.start, r.end, r.amount, r.notes].map(csvCell).join(",")); });
+      }
+    }
+    return "﻿" + lines.join("\r\n");
+  }
+  // ---------- ZIP (store-only, no library) ----------
+  var CRC_T = null;
+  function crc32(u8) {
+    if (!CRC_T) { CRC_T = new Uint32Array(256); for (var n = 0; n < 256; n++) { var c = n; for (var k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; CRC_T[n] = c >>> 0; } }
+    var r = 0xFFFFFFFF;
+    for (var i = 0; i < u8.length; i++) r = CRC_T[(r ^ u8[i]) & 255] ^ (r >>> 8);
+    return (r ^ 0xFFFFFFFF) >>> 0;
+  }
+  function zipStore(entries) {
+    var enc = new TextEncoder(), now = new Date(), parts = [], central = [], offset = 0;
+    var dt = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1);
+    var dd = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+    entries.forEach(function (e) {
+      var nm = enc.encode(e.name), crc = crc32(e.data), sz = e.data.length;
+      var lh = new DataView(new ArrayBuffer(30));
+      lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(10, dt, true); lh.setUint16(12, dd, true);
+      lh.setUint32(14, crc, true); lh.setUint32(18, sz, true); lh.setUint32(22, sz, true); lh.setUint16(26, nm.length, true);
+      var ch = new DataView(new ArrayBuffer(46));
+      ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint16(12, dt, true); ch.setUint16(14, dd, true);
+      ch.setUint32(16, crc, true); ch.setUint32(20, sz, true); ch.setUint32(24, sz, true); ch.setUint16(28, nm.length, true); ch.setUint32(42, offset, true);
+      parts.push(lh.buffer, nm, e.data); central.push(ch.buffer, nm);
+      offset += 30 + nm.length + sz;
+    });
+    var csize = 0; central.forEach(function (p) { csize += p.byteLength !== undefined ? p.byteLength : p.length; });
+    var end = new DataView(new ArrayBuffer(22));
+    end.setUint32(0, 0x06054b50, true); end.setUint16(8, entries.length, true); end.setUint16(10, entries.length, true); end.setUint32(12, csize, true); end.setUint32(16, offset, true);
+    return new Blob(parts.concat(central, [end.buffer]), { type: "application/zip" });
+  }
+  function inflateRaw(raw) {
+    var ds = new DecompressionStream("deflate-raw"), w = ds.writable.getWriter();
+    w.write(raw); w.close();
+    return new Response(ds.readable).arrayBuffer().then(function (b) { return new Uint8Array(b); });
+  }
+  // Resolves {entry name: Uint8Array}. Reads stored and deflated entries.
+  function unzip(buf) {
+    var u8 = new Uint8Array(buf), v = new DataView(buf), dec = new TextDecoder(), end = -1;
+    for (var i = u8.length - 22; i >= Math.max(0, u8.length - 65557); i--) if (v.getUint32(i, true) === 0x06054b50) { end = i; break; }
+    if (end < 0) return Promise.reject(new Error("not a zip"));
+    var count = v.getUint16(end + 10, true), p = v.getUint32(end + 16, true), out = {}, chain = Promise.resolve();
+    for (var n = 0; n < count && v.getUint32(p, true) === 0x02014b50; n++) {
+      var method = v.getUint16(p + 10, true), csz = v.getUint32(p + 20, true), nl = v.getUint16(p + 28, true), xl = v.getUint16(p + 30, true), cl = v.getUint16(p + 32, true), off = v.getUint32(p + 42, true);
+      var name = dec.decode(u8.subarray(p + 46, p + 46 + nl));
+      p += 46 + nl + xl + cl;
+      if (name.slice(-1) === "/") continue;
+      (function (nm, m, start, len) {
+        var raw = u8.subarray(start, start + len);
+        chain = chain.then(function () {
+          if (m === 0) { out[nm] = raw; return; }
+          if (m === 8 && typeof DecompressionStream === "function") return inflateRaw(raw).then(function (d) { out[nm] = d; });
+          throw new Error("unsupported zip");
+        });
+      })(name, method, off + 30 + v.getUint16(off + 26, true) + v.getUint16(off + 28, true), csz);
+    }
+    return chain.then(function () { return out; });
+  }
+
+  // ---------- backup file ----------
+  var EXT_TYPE = { png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", webp: "image/webp" };
+  function proofExt(p) { return { "image/png": "png", "image/jpeg": "jpg", "image/gif": "gif", "image/webp": "webp" }[p.type] || "img"; }
+  function proofNames(jobs) {
+    var names = {}, used = {};
+    jobs.slice().sort(function (a, b) { return (a.date + (a.start || "")).localeCompare(b.date + (b.start || "")); }).forEach(function (j) {
+      (j.proofs || []).forEach(function (p, i) {
+        var base = (j.date || "nodate") + "_" + (String(j.jobNum || "nojob").replace(/[^\w.-]+/g, "") || "nojob") + "_proof" + (i + 1), nm = base + "." + proofExt(p), k = 2;
+        while (used[nm]) nm = base + "-" + (k++) + "." + proofExt(p);
+        used[nm] = 1; names[p.id] = nm;
+      });
+    });
+    return names;
+  }
+  function proofCount() { return Object.keys(state.jobs).reduce(function (s, id) { return s + (state.jobs[id].proofs || []).length; }, 0); }
+  function saveCsvBackup() {
+    if (!dl) return;
+    var hasProofs = proofCount() > 0;
+    dl.save({ filename: "Chauffeur_Job_Log_" + todayStr() + ".csv", data: buildCsv(null, null, true) }).then(function () {
+      if (!hasProofs) lsSet("cjl.lastBackup", Date.now());
+      toast(hasProofs ? "Spreadsheet saved. It has no screenshots." : "Backup saved"); updateBackupViews(); renderBackup();
+    }).catch(function (e) {
+      if (e && e.code === "declined") return;
+      $("#bk-msg").textContent = "The backup did not save. Try again.";
+      toast("The backup did not save. Try again.");
+    });
+  }
+  // With proof screenshots the backup is a ZIP: the spreadsheet, a proofs folder and a manifest (hash of every picture).
+  function doBackup() {
+    if (!dl) return;
+    var jobs = sortedJobs(), names = proofNames(jobs), items = [], msg = $("#bk-msg"), got = [], missing = 0, chain = Promise.resolve();
+    jobs.forEach(function (j) { (j.proofs || []).forEach(function (p) { items.push({ j: j, p: p, name: names[p.id] }); }); });
+    if (!items.length) { saveCsvBackup(); return; }
+    $("#bk-btn").disabled = true;
+    items.forEach(function (it, i) {
+      chain = chain.then(function () {
+        msg.textContent = "Collecting screenshot " + (i + 1) + " of " + items.length + "…";
+        return fetch(blobUrl(it.p.id)).then(function (r) { if (!r.ok) throw new Error("missing"); return r.arrayBuffer(); }).then(function (b) {
+          got.push({ it: it, data: new Uint8Array(b) });
+        }, function () { missing++; });
+      });
+    });
+    chain.then(function () {
+      var enc = new TextEncoder(), man = {};
+      got.forEach(function (g) { var p = g.it.p, j = g.it.j; man[g.it.name] = { name: p.name || "", type: p.type || "", size: g.data.length, addedOn: p.addedOn || "", sha256: p.sha256 || "", jobDate: j.date, jobNum: j.jobNum || "" }; });
+      var entries = [{ name: "Chauffeur_Job_Log_" + todayStr() + ".csv", data: enc.encode(buildCsv(jobs, names, true)) }]
+        .concat(got.map(function (g) { return { name: "proofs/" + g.it.name, data: g.data }; }), [{ name: "proofs/manifest.json", data: enc.encode(JSON.stringify(man, null, 1)) }]);
+      return dl.save({ filename: "Chauffeur_Job_Log_" + todayStr() + ".zip", data: zipStore(entries) });
+    }).then(function () {
+      if (missing) { msg.textContent = "Saved, but " + missing + (missing === 1 ? " screenshot" : " screenshots") + " could not be read, so this backup is not complete. Try again."; toast("Backup saved, but not complete"); }
+      else { lsSet("cjl.lastBackup", Date.now()); msg.textContent = "Saved a ZIP with " + got.length + (got.length === 1 ? " screenshot." : " screenshots."); toast("Backup saved"); }
+    }).catch(function (e) {
+      if (e && e.code === "declined") { msg.textContent = ""; return; }
+      msg.textContent = "The backup did not save. Try again."; toast("The backup did not save. Try again.");
+    }).then(function () { updateBackupViews(); renderBackup(); });
+  }
+  $("#bk-btn").addEventListener("click", doBackup);
+  $("#bk-csv").addEventListener("click", saveCsvBackup);
+
+  // ---------- restore ----------
+  function parseCsv(text) {
+    text = text.replace(/^﻿/, "");
+    var rows = [], row = [], cell = "", q = false;
+    for (var i = 0; i < text.length; i++) {
+      var c = text[i];
+      if (q) { if (c === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += c; }
+      else if (c === '"') q = true;
+      else if (c === ",") { row.push(cell); cell = ""; }
+      else if (c === "\n") { row.push(cell); rows.push(row); row = []; cell = ""; }
+      else if (c !== "\r") cell += c;
+    }
+    if (cell !== "" || row.length) { row.push(cell); rows.push(row); }
+    return rows;
+  }
+  function to24(t) {
+    var m = (t || "").trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+    if (!m) return "";
+    var h = +m[1];
+    if (m[3]) h = h % 12 + (m[3].toUpperCase() === "PM" ? 12 : 0);
+    return String(h).padStart(2, "0") + ":" + m[2];
+  }
+  function normDate(s) {
+    var m = (s || "").trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    return m ? m[3] + "-" + m[1].padStart(2, "0") + "-" + m[2].padStart(2, "0") : (s || "").trim();
+  }
+  function jobKey(j) { return [j.date, j.start, j.jobNum, j.pickup, j.dropoff, j.type].join("|").toLowerCase(); }
+  function restoreFrom(text, zipFiles) {
+    var msg = $("#bk-restore-msg"), rows = parseCsv(text), withProofs = [], rideRows = [];
+    var rsAt = -1;
+    rows.forEach(function (r, i) { if (rsAt < 0 && r.length === 1 && r[0].trim() === "Rideshare weeks") rsAt = i; });
+    if (rsAt >= 0) { rideRows = rows.slice(rsAt + 2); rows = rows.slice(0, rsAt); }
+    var head = (rows[0] || []).map(function (h) { return h.trim().toLowerCase(); });
+    var col = function (n) { return head.indexOf(n); };
+    var iDate = col("date"), iType = col("job type");
+    if (rows.length < 2 || iDate < 0 || iType < 0) { msg.textContent = "This does not look like a Job Log backup file."; return; }
+    var ix = { job: col("job #"), disp: col("dispatcher"), veh: col("vehicle requested"), st: col("start time"), en: col("end time"),
+      pu: col("pick-up location"), dr: col("drop-off location"), price: col("price ($)"), notes: col("notes"), fl: col("flight"), rt: col("round trip"),
+      pay: col("payment status"), recv: col("amount received ($)"), pdate: col("date received"), miles: col("miles"), mest: col("miles estimated"), dly: col("delay (min)"), dwhy: col("delay reason"), pob: col("pob time"), rep: col("delay reported"), repon: col("delay reported on"),
+      st: col("status"), cxd: col("cancelled on"), cxt: col("cancelled time"), cxb: col("cancelled by"), enr: col("en route since"), cxn: col("cancellation note"), pf: col("proof files"), src: col("job source") };
+    var stopCols = [], asgCols = [], asgTimeCols = [];
+    head.forEach(function (h, i) { if (/^stop \d+$/.test(h)) stopCols.push(i); if (/^assigned job \d+$/.test(h)) asgCols.push(i); if (/^assigned start \d+$/.test(h)) asgTimeCols.push(i); });
+    var have = {};
+    Object.keys(state.jobs).forEach(function (id) { have[jobKey(state.jobs[id])] = 1; });
+    var added = 0, skipped = 0, bad = 0;
+    rows.slice(1).forEach(function (r) {
+      if (r.length < 2) return;
+      var g = function (i) { return i >= 0 && r[i] != null ? r[i].trim() : ""; };
+      var date = normDate(g(iDate)), type = g(iType), start = to24(g(ix.st));
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || (type !== "Hourly" && type !== "Transfer") || !start) { bad++; return; }
+      var pr = g(ix.price), price = pr === "" ? null : Number(pr);
+      var paid = g(ix.pay).toLowerCase() === "paid", rv = g(ix.recv) === "" ? null : Number(g(ix.recv));
+      var mi = g(ix.miles) === "" ? null : Number(g(ix.miles));
+      if (type !== "Transfer" || (mi != null && isNaN(mi))) mi = null;
+      var dl0 = Math.round(Number(g(ix.dly))), stt = g(ix.st).toLowerCase();
+      var status = stt.indexOf("billable") >= 0 ? "cxl_bill" : stt.indexOf("no charge") >= 0 ? "cxl_free" : "done";
+      var job = {
+        status: status, cxlDate: status === "done" ? "" : normDate(g(ix.cxd)), cxlTime: status === "done" ? "" : to24(g(ix.cxt)), cxlBy: g(ix.cxb),
+        enRoute: status === "done" ? "" : to24(g(ix.enr)), cxlNote: g(ix.cxn), proofs: [],
+        pob: type === "Transfer" ? to24(g(ix.pob)) : "",
+        reported: type === "Transfer" && dl0 > 0 && g(ix.rep).toLowerCase() === "yes", reportedOn: type === "Transfer" && dl0 > 0 && g(ix.rep).toLowerCase() === "yes" ? normDate(g(ix.repon)) : "",
+        delay: type === "Transfer" && dl0 > 0 ? dl0 : null, delayWhy: type === "Transfer" && dl0 > 0 ? g(ix.dwhy) : "",
+        miles: mi, milesEst: mi != null && g(ix.mest).toLowerCase() === "yes",
+        id: "j" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        type: type, date: date, jobNum: g(ix.job), start: start, end: to24(g(ix.en)),
+        dispatcher: g(ix.disp), vehicle: g(ix.veh), pickup: g(ix.pu), dropoff: g(ix.dr),
+        stops: stopCols.map(function (i) { return g(i); }).filter(Boolean),
+        assigned: type === "Hourly" ? asgCols.map(function (i) { return g(i); }).filter(Boolean) : [],
+        assignedStart: type === "Hourly" ? asgCols.map(function (i, k) { return g(i) ? (asgTimeCols[k] != null ? to24(g(asgTimeCols[k])) : "") : null; }).filter(function (t) { return t !== null; }) : [],
+        price: isNaN(price) ? null : price,
+        paid: paid, received: paid && rv != null && !isNaN(rv) ? rv : null, paidDate: paid ? normDate(g(ix.pdate)) : "",
+        notes: g(ix.notes), source: g(ix.src) === "Direct" || g(ix.src) === "Affiliate" ? g(ix.src) : "", flight: g(ix.fl).toUpperCase(), roundTrip: type === "Transfer" && g(ix.rt).toLowerCase() === "yes", updated: Date.now()
+      };
+      var k = jobKey(job);
+      if (have[k]) { skipped++; return; }
+      have[k] = 1; state.jobs[job.id] = job; setPending(job.id, true); added++;
+      var pf = g(ix.pf).split(";").map(function (s) { return s.trim(); }).filter(function (s) { return /\.\w+$/.test(s); });
+      if (pf.length) withProofs.push({ job: job, files: pf });
+    });
+    var rAdded = 0, rSkipped = 0;
+    rideRows.forEach(function (r) {
+      var co = (r[0] || "").trim(), s0 = normDate(r[1]), e0 = normDate(r[2]), amt = parseFloat(r[3]);
+      if ((co !== "Uber" && co !== "Lyft") || !/^\d{4}-\d{2}-\d{2}$/.test(s0) || !/^\d{4}-\d{2}-\d{2}$/.test(e0) || isNaN(amt)) return;
+      var dup = Object.keys(rides).some(function (id) { return rides[id].company === co && rides[id].start === s0; });
+      if (dup) { rSkipped++; return; }
+      var rid = "r" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      rides[rid] = { id: rid, company: co, start: s0, end: e0, amount: amt, notes: (r[4] || "").trim(), updated: Date.now() };
+      setRidePending(rid, true); rAdded++;
+    });
+    if (rAdded) { saveRides(); renderRides(); if (db) pushRides(); }
+    saveLocal(); refreshLists(); if (db) pushPending();
+    var base = "Restored " + added + (added === 1 ? " job" : " jobs") + ". Skipped " + skipped + " already in the app" + (bad ? ". " + bad + " rows could not be read." : ".") + (rideRows.length ? " Rideshare weeks restored: " + rAdded + ", skipped " + rSkipped + "." : "");
+    msg.textContent = base;
+    toast(added + (added === 1 ? " job restored" : " jobs restored"));
+    if (!withProofs.length) return;
+    if (!zipFiles) { msg.textContent = base + " This spreadsheet names proof screenshots but does not contain them. Restore from the ZIP file to bring them back."; return; }
+    if (!assetsNs) { msg.textContent = base + " Proof screenshots were not restored: saving screenshots is not available in this view."; return; }
+    restoreProofs(withProofs, zipFiles, base);
+  }
+  // Re-uploads each picture from the ZIP and links it to its job; a hash mismatch against the manifest is reported.
+  function restoreProofs(items, files, base) {
+    var msg = $("#bk-restore-msg"), man = {}, ok = 0, bad = 0, sums = 0, total = 0, chain = Promise.resolve();
+    try { if (files["proofs/manifest.json"]) man = JSON.parse(new TextDecoder().decode(files["proofs/manifest.json"])); } catch (e) {}
+    items.forEach(function (it) { total += it.files.length; });
+    items.forEach(function (it) {
+      it.files.forEach(function (nm) {
+        chain = chain.then(function () {
+          var data = files["proofs/" + nm], meta = man[nm] || {};
+          if (!data) { bad++; return; }
+          msg.textContent = base + " Restoring screenshot " + (ok + bad + 1) + " of " + total + "…";
+          var ext = nm.split(".").pop().toLowerCase(), type = EXT_TYPE[ext] || meta.type || "image/png", blob = new Blob([data], { type: type });
+          return sha256Hex(data.slice().buffer).then(function (hash) {
+            if (meta.sha256 && hash && meta.sha256 !== hash) sums++;
+            return assetsNs.upload(blob).then(function (r) {
+              it.job.proofs.push({ id: r.id, name: meta.name || nm, type: r.contentType, size: r.sizeBytes, addedOn: meta.addedOn || new Date().toISOString(), sha256: hash || meta.sha256 || "" });
+              ok++;
+            });
+          }).catch(function () { bad++; });
+        });
+      });
+      chain = chain.then(function () { persist(it.job); });
+    });
+    chain.then(function () {
+      msg.textContent = base + " Restored " + ok + (ok === 1 ? " screenshot" : " screenshots") + (bad ? "; " + bad + " could not be restored" : "") + (sums ? "; " + sums + " did not match the saved fingerprint, so check them" : "") + ".";
+    });
+  }
+  $("#bk-restore").addEventListener("click", function () { $("#bk-file").click(); });
+  $("#bk-file").addEventListener("change", function (e) {
+    var f = e.target.files[0]; if (!f) return;
+    var rd = new FileReader(), isZip = /\.zip$/i.test(f.name) || /zip/.test(f.type);
+    rd.onload = function () {
+      e.target.value = "";
+      if (!isZip) { restoreFrom(String(rd.result)); return; }
+      unzip(rd.result).then(function (files) {
+        var csv = Object.keys(files).filter(function (n) { return /\.csv$/i.test(n) && n.indexOf("/") < 0; })[0];
+        if (!csv) { $("#bk-restore-msg").textContent = "No job spreadsheet found inside that ZIP."; return; }
+        restoreFrom(new TextDecoder().decode(files[csv]), files);
+      }, function () { $("#bk-restore-msg").textContent = "That ZIP could not be opened. Use a backup made by this app."; });
+    };
+    rd.onerror = function () { $("#bk-restore-msg").textContent = "That file could not be read."; };
+    if (isZip) rd.readAsArrayBuffer(f); else rd.readAsText(f);
+  });
+
+  // ---------- delete ----------
+  function deleteJob(id) {
+    delete state.jobs[id]; saveLocal(); setPending(id, false);
+    if (db) { db.doc("jobs/" + id).delete().catch(function () { toast("Deleted here; cloud copy not removed"); }); }
+  }
+  var clearTimer = null;
+  $("#bk-clear").addEventListener("click", function () {
+    var n = Object.keys(state.jobs).length;
+    if (!n) { toast("No jobs to delete"); return; }
+    askDelete("Delete ALL " + n + (n === 1 ? " job?" : " jobs?"), "Every job in the app and in the cloud will be removed.", function () {
+      Object.keys(state.jobs).forEach(deleteJob);
+      refreshLists(); renderBackup(); toast("All jobs deleted");
+    });
+  });
+
+  // ---------- report ----------
+  var rep = { from: "", to: "", disp: "", type: "", veh: "", pay: "", preset: "month" };
+  function ymd(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+  function applyPreset(p) {
+    var now = new Date(), y = now.getFullYear(), m = now.getMonth(), d = now.getDate(), f = "", t = "";
+    if (p === "week") { var dow = (now.getDay() + 6) % 7; f = ymd(new Date(y, m, d - dow)); t = ymd(new Date(y, m, d - dow + 6)); }
+    else if (p === "month") { f = ymd(new Date(y, m, 1)); t = ymd(new Date(y, m + 1, 0)); }
+    else if (p === "last") { f = ymd(new Date(y, m - 1, 1)); t = ymd(new Date(y, m, 0)); }
+    else if (p === "30") { f = ymd(new Date(y, m, d - 29)); t = ymd(now); }
+    rep.preset = p; rep.from = f; rep.to = t;
+  }
+  applyPreset("month");
+  function reportJobs() {
+    return sortedJobs().filter(function (j) {
+      if (rep.from && j.date < rep.from) return false;
+      if (rep.to && j.date > rep.to) return false;
+      if (rep.disp && j.dispatcher !== rep.disp) return false;
+      if (rep.type && j.type !== rep.type) return false;
+      if (rep.veh && j.vehicle !== rep.veh) return false;
+      if (rep.pay === "paid" && !isPaid(j)) return false;
+      if (rep.pay === "pending" && isPaid(j)) return false;
+      return true;
+    });
+  }
+  function fillSelect(sel, values, cur, allLabel) {
+    sel.innerHTML = "";
+    var o = el("option", null, allLabel); o.value = ""; sel.append(o);
+    values.forEach(function (v) { var x = el("option", null, v); x.value = v; sel.append(x); });
+    sel.value = values.indexOf(cur) >= 0 ? cur : "";
+    return sel.value;
+  }
+  function moneyShort(n) { return n ? fmtMoney(n).replace(".00", "") : "—"; }
+  function renderBreak(box, title, jobs, keyFn) {
+    box.innerHTML = "";
+    var g = {};
+    jobs.forEach(function (j) {
+      var k = keyFn(j), a = g[k] || (g[k] = { n: 0, h: 0, p: 0, m: 0 });
+      a.n++; a.h += hoursOf(j); a.p += recvOf(j); a.m += j.miles || 0;
+    });
+    var keys = Object.keys(g).sort(function (a, b) { return g[b].n - g[a].n; });
+    if (!keys.length) return;
+    box.append(el("div", "day", title));
+    var head = el("div", "rrow rhead");
+    head.append(el("span"), el("span", null, "Jobs"), el("span", null, "Hrs"), el("span", null, "Mi"), el("span", null, "Paid"));
+    box.append(head);
+    keys.forEach(function (k) {
+      var r = el("div", "rrow"), a = g[k];
+      r.append(el("span", null, k), el("span", null, String(a.n)), el("span", null, a.h ? a.h.toFixed(1) : "—"), el("span", null, a.m ? String(Math.round(a.m)) : "—"), el("span", null, moneyShort(a.p)));
+      box.append(r);
+    });
+  }
+  function renderReport() {
+    var all = sortedJobs(), ds = {}, vs = {};
+    all.forEach(function (j) { if (j.dispatcher) ds[j.dispatcher] = 1; if (j.vehicle) vs[j.vehicle] = 1; });
+    rep.disp = fillSelect($("#r-disp"), Object.keys(ds).sort(), rep.disp, "All dispatchers");
+    rep.veh = fillSelect($("#r-veh"), Object.keys(vs).sort(), rep.veh, "All vehicles");
+    $("#r-type").value = rep.type; $("#r-pay").value = rep.pay; $("#r-from").value = rep.from; $("#r-to").value = rep.to;
+    document.querySelectorAll("#r-presets .pill").forEach(function (p) { p.setAttribute("aria-pressed", p.dataset.p === rep.preset ? "true" : "false"); });
+    var jobs = reportJobs();
+    var hrs = jobs.reduce(function (s, j) { return s + hoursOf(j); }, 0);
+    var got = jobs.reduce(function (s, j) { return s + recvOf(j); }, 0);
+    var owed = jobs.reduce(function (s, j) { return s + owedOf(j); }, 0);
+    var noPrice = jobs.filter(function (j) { return !isPaid(j) && j.price == null; }).length;
+    var cxl = jobs.filter(isCxl), cxlBill = cxl.filter(function (j) { return !isFree(j); }).length;
+    var waiting = jobs.filter(function (j) { return stmtDays(j) != null; }).length;
+    var miles = jobs.reduce(function (s, j) { return s + (j.miles || 0); }, 0);
+    var nEst = jobs.filter(function (j) { return j.miles != null && j.milesEst; }).length;
+    var nTransfer = jobs.filter(function (j) { return j.type === "Transfer"; }).length;
+    var nNoMiles = jobs.filter(function (j) { return j.type === "Transfer" && j.miles == null; }).length;
+    var late = jobs.filter(isLate), lateMin = late.reduce(function (s, j) { return s + j.delay; }, 0);
+    var dbox = $("#r-delays"); dbox.innerHTML = "";
+    if (late.length) {
+      var dc = el("div", "delaycall");
+      var nUnrep = late.filter(function (j) { return !j.reported; }).length;
+      dc.append(el("h3", null, "Delayed transfers: " + late.length + " · " + fmtDelay(lateMin) + " extra" + (nUnrep ? " · " + nUnrep + " not reported" : " · all reported")));
+      dc.append(el("p", "hint", "These jobs ran more than " + GRACE + " minutes over the booked time. Tap one to edit."));
+      late.slice().reverse().forEach(function (j) {
+        var b = el("button", "rjob"); b.type = "button";
+        var l1 = el("div", "l1");
+        l1.append(el("span", null, fmtDay(j.date) + "  " + fmtTime(j.start)), el("span", "why", "+" + fmtDelay(j.delay)));
+        b.append(l1, el("div", "route", routeText(j)), el("div", "route", [j.jobNum ? "#" + j.jobNum : "", j.dispatcher, j.delayWhy].filter(Boolean).join(" · ")), el("div", "why", repText(j)));
+        b.addEventListener("click", function () { loadIntoForm(j); });
+        dc.append(b);
+      });
+      dbox.append(dc);
+    }
+    var notes = [];
+    if (noPrice) notes.push(noPrice + (noPrice === 1 ? " pending job has" : " pending jobs have") + " no price yet, so Outstanding is understated.");
+    if (nEst) notes.push("Miles include " + nEst + " estimated " + (nEst === 1 ? "distance" : "distances") + ".");
+    if (nNoMiles) notes.push(nNoMiles + (nNoMiles === 1 ? " transfer has" : " transfers have") + " no miles entered.");
+    $("#r-note").textContent = notes.join(" ");
+    var sum = $("#r-sum"); sum.innerHTML = "";
+    [[jobs.length, "Jobs"], [hrs.toFixed(1), "Hours"], [nTransfer ? Math.round(miles).toLocaleString() : "—", "Miles"], [moneyShort(got), "Received"], [moneyShort(owed), "Outstanding"], [late.length ? late.length + " · " + fmtDelay(lateMin) : "0", "Delayed"],
+      [cxl.length ? cxl.length + " · " + cxlBill + " billable" : "0", "Cancelled"], [waiting, "Awaiting statement"]].forEach(function (x) {
+      var d = el("div"); d.append(el("b", null, String(x[0])), el("small", null, x[1])); sum.append(d);
+    });
+    renderBreak($("#r-bydisp"), "By dispatcher", jobs, function (j) { return j.dispatcher || "No dispatcher"; });
+    renderBreak($("#r-byveh"), "By vehicle", jobs, function (j) { return j.vehicle || "Not specified"; });
+    renderBreak($("#r-bytype"), "By job type", jobs, function (j) { return j.type; });
+    var list = $("#r-list"); list.innerHTML = "";
+    $("#r-listhead").textContent = jobs.length ? "Matching jobs (" + jobs.length + ")" : "Matching jobs";
+    if (!jobs.length) list.append(el("div", "empty", all.length ? "No jobs match these filters." : "No jobs logged yet."));
+    jobs.forEach(function (j) {
+      var b = el("button", "rjob"); b.type = "button";
+      var l1 = el("div", "l1");
+      l1.append(el("span", null, fmtDay(j.date) + "  " + fmtTime(j.start) + (j.end ? " – " + fmtTime(j.end) : "")), el("span", null, payText(j)));
+      var bits = [j.type, isCxl(j) ? (isFree(j) ? "Cancelled, no charge" : "Cancelled, billable") : "", j.jobNum ? "#" + j.jobNum : "", j.dispatcher, j.vehicle, fmtMiles(j), (j.proofs || []).length ? j.proofs.length + " proof" : ""].filter(Boolean).join(" · ");
+      b.append(l1, el("div", "route", routeText(j)), el("div", "route", bits));
+      b.addEventListener("click", function () { loadIntoForm(j); });
+      list.append(b);
+    });
+    $("#r-export").disabled = !dl || !jobs.length;
+  }
+  $("#r-presets").addEventListener("click", function (e) {
+    var b = e.target.closest(".pill"); if (!b) return;
+    applyPreset(b.dataset.p); renderReport();
+  });
+  $("#r-from").addEventListener("change", function (e) { rep.from = e.target.value; rep.preset = "custom"; renderReport(); });
+  $("#r-to").addEventListener("change", function (e) { rep.to = e.target.value; rep.preset = "custom"; renderReport(); });
+  $("#r-disp").addEventListener("change", function (e) { rep.disp = e.target.value; renderReport(); });
+  $("#r-type").addEventListener("change", function (e) { rep.type = e.target.value; renderReport(); });
+  $("#r-veh").addEventListener("change", function (e) { rep.veh = e.target.value; renderReport(); });
+  $("#r-pay").addEventListener("change", function (e) { rep.pay = e.target.value; renderReport(); });
+  $("#r-export").addEventListener("click", function () {
+    if (!dl) return;
+    dl.save({ filename: "Chauffeur_Report_" + todayStr() + ".csv", data: buildCsv(reportJobs()) }).then(function () {
+      toast("Report saved");
+    }).catch(function (e) { if (e && e.code === "declined") return; toast("The report did not save"); });
+  });
+
+  // ---------- proof screenshots ----------
+  // Pictures live in the artifact's asset store; the job row keeps {id, name, type, size, addedOn, sha256}. Removing a proof from a job only unlinks it: the file is never deleted from storage.
+  function blobUrl(id) { return "/_blob/" + id; }
+  function openProof(p) {
+    $("#lbImg").src = blobUrl(p.id); $("#lbImg").alt = "Proof screenshot " + (p.name || "");
+    $("#lbCap").textContent = (p.name || "Screenshot") + (p.addedOn ? " · added " + p.addedOn.slice(0, 10) : "");
+    $("#lightbox").hidden = false; $("#lbClose").focus();
+  }
+  function closeProof() { $("#lightbox").hidden = true; $("#lbImg").removeAttribute("src"); }
+  $("#lbClose").addEventListener("click", closeProof);
+  $("#lightbox").addEventListener("click", function (e) { if (e.target === this) closeProof(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !$("#lightbox").hidden) closeProof(); });
+  function thumbBtn(p, small) {
+    var b = el("button", "thumb" + (small ? " sm" : "")); b.type = "button"; b.setAttribute("aria-label", "View proof " + (p.name || ""));
+    var im = el("img"); im.src = blobUrl(p.id); im.alt = ""; im.loading = "lazy";
+    im.addEventListener("error", function () { b.textContent = "Missing"; });
+    b.append(im);
+    b.addEventListener("click", function (e) { e.stopPropagation(); openProof(p); });
+    return b;
+  }
+  function renderProofs() {
+    var box = $("#proofs"); box.innerHTML = "";
+    state.proofs.forEach(function (p, i) {
+      var w = el("div", "proof"), rm = el("button", "btn ghost", "Remove"); rm.type = "button";
+      rm.addEventListener("click", function () {
+        if (!rm.dataset.armed) {
+          rm.dataset.armed = "1"; rm.textContent = "Tap again";
+          setTimeout(function () { delete rm.dataset.armed; rm.textContent = "Remove"; }, 3000);
+          return;
+        }
+        state.proofs.splice(i, 1); renderProofs();
+        toast("Removed from this job. Tap Save to keep the change. The file stays in storage.");
+      });
+      w.append(thumbBtn(p, false), rm); box.append(w);
+    });
+  }
+  function sha256Hex(buf) {
+    try {
+      return crypto.subtle.digest("SHA-256", buf).then(function (h) {
+        return Array.prototype.map.call(new Uint8Array(h), function (b) { return b.toString(16).padStart(2, "0"); }).join("");
+      }).catch(function () { return ""; });
+    } catch (e) { return Promise.resolve(""); }
+  }
+  function proofErr(e) {
+    var m = {
+      unsupported_type: "That picture type is not supported. Use a screenshot (PNG or JPG).",
+      too_large: "That picture is too large (20 MB limit).",
+      quota_or_state: "Screenshot storage is full. Free up space on the phone.",
+      rate_limited: "Too many uploads at once. Wait a moment, then try again.",
+      store_unavailable: "Storage is busy. Try again in a moment.",
+      not_granted: "This view cannot store screenshots.",
+      capability_disabled: "This view cannot store screenshots."
+    };
+    return m[e && e.code] || "The screenshot did not upload. Check your connection and try again.";
+  }
+  function addProofs(files) {
+    var msg = $("#proofMsg");
+    if (!assetsNs) { msg.textContent = "Saving screenshots is not available in this view."; return; }
+    var list = Array.prototype.filter.call(files, function (f) { return /^image\//.test(f.type); });
+    if (!list.length) { msg.textContent = "Pick a picture or screenshot."; return; }
+    if (uploading) { msg.textContent = "Still uploading the last one…"; return; }
+    uploading = true; $("#proofPick").disabled = true;
+    var n = 0, chain = Promise.resolve();
+    list.forEach(function (f) {
+      chain = chain.then(function () {
+        msg.textContent = "Uploading " + (n + 1) + " of " + list.length + "…";
+        return f.arrayBuffer().then(function (buf) {
+          return sha256Hex(buf).then(function (hash) {
+            return assetsNs.upload(f).then(function (r) {
+              state.proofs.push({ id: r.id, name: f.name || "screenshot", type: r.contentType, size: r.sizeBytes, addedOn: new Date().toISOString(), sha256: hash });
+              n++; renderProofs();
+            });
+          });
+        });
+      });
+    });
+    chain.then(function () {
+      var cur = state.editing && state.jobs[state.editing];
+      if (cur) persist(Object.assign({}, cur, { proofs: state.proofs.slice(), updated: Date.now() }));
+      msg.textContent = n + (n === 1 ? " screenshot" : " screenshots") + " saved to the cloud" + (cur ? " and attached to this job." : ". Tap Save job to attach " + (n === 1 ? "it" : "them") + " to this job.");
+      if (smp && list[0]) readProof(list[0]);
+    }, function (e) {
+      msg.textContent = proofErr(e) + (n ? " " + n + " uploaded before the error." : "");
+    }).then(function () { uploading = false; $("#proofPick").disabled = false; });
+  }
+  function proofPrompt() {
+    return "";
+  }
+  // Reads the text of a proof screenshot into empty boxes only; the proof itself is what counts as evidence.
+  function readProof(file) {
+    if (!smp || readCtl) return;
+    readCtl = new AbortController();
+    smp.json(proofPrompt(), { images: file, signal: readCtl.signal }).then(function (d) {
+      d = d && typeof d === "object" && !Array.isArray(d) ? d : {};
+      var n = 0;
+      function fillIf(sel, v) { var f = $(sel); if (v != null && String(v).trim() && !f.value.trim()) { f.value = String(v).trim(); f.classList.add("filled"); n++; } }
+      if (/^\d{1,2}:\d{2}$/.test(d.cancelledTime || "")) fillIf("#f-cxltime", d.cancelledTime.padStart(5, "0"));
+      fillIf("#f-cxlby", d.cancelledBy); fillIf("#f-cxlnote", d.summary); fillIf("#f-job", d.jobNum);
+      var s = jstatus(), clash = (d.billable === true && s === "cxl_free") || (d.billable === false && s === "cxl_bill");
+      $("#proofMsg").textContent += (n ? " Read the text and filled " + n + (n === 1 ? " box" : " boxes") + " (outlined in gold). Check them." : "") +
+        (clash ? " The message says " + (d.billable ? "billable" : "no charge") + ", but the outcome above says the opposite. Check it." : "");
+    }, function () {}).then(function () { readCtl = null; });
+  }
+  $("#proofPick").addEventListener("click", function () { $("#proofFile").click(); });
+  $("#proofFile").addEventListener("change", function (e) { var fs = Array.prototype.slice.call(e.target.files); e.target.value = ""; if (fs.length) addProofs(fs); });
+
+  // ---------- screenshot scan ----------
+  var smp = null, scanCtl = null;
+  var SCAN_FIELDS = [["date", "#f-date", "Date"], ["start", "#f-start", "Start time"], ["jobNum", "#f-job", "Job #"], ["dispatcher", "#f-disp", "Dispatcher"], ["flight", "#f-flight", "Flight"],
+    ["vehicle", "#f-veh", "Vehicle"], ["pickup", "#f-pick", "Pick-up"], ["dropoff", "#f-drop", "Drop-off"], ["price", "#f-price", "Price"]];
+  function scanPrompt() {
+    return "";
+  }
+  function scanSet(sel, v, mark) {
+    if (v == null || String(v).trim() === "") return 0;
+    var n = $(sel); n.value = String(v).trim();
+    if (mark !== false) n.classList.add("filled");
+    return n.value === String(v).trim() ? 1 : 0;
+  }
+  function applyScan(d) {
+    d = d && typeof d === "object" && !Array.isArray(d) ? d : {};
+    var ok = {}, filled = 0;
+    if (d.type === "Hourly" || d.type === "Transfer") {
+      document.querySelector('input[name="jtype"][value="' + d.type + '"]').checked = true; applyType(); ok.type = 1; filled++;
+    }
+    var hourly = jtype() === "Hourly";
+    if (/^\d{4}-\d{2}-\d{2}$/.test(d.date || "")) { ok.date = scanSet("#f-date", d.date); }
+    if (/^\d{1,2}:\d{2}$/.test(d.start || "")) { ok.start = scanSet("#f-start", d.start.padStart(5, "0")); }
+    if (hourly && /^\d{1,2}:\d{2}$/.test(d.end || "")) { ok.end = scanSet("#f-end", d.end.padStart(5, "0")); }
+    ok.jobNum = scanSet("#f-job", d.jobNum);
+    ok.dispatcher = scanSet("#f-disp", d.dispatcher);
+    if (d.vehicle === "SUV" || d.vehicle === "Sedan") { setVehicle(d.vehicle); $("#f-veh").classList.add("filled"); ok.vehicle = 1; }
+    if (typeof d.flight === "string" && /^[A-Za-z0-9]{2}\s?\d{1,4}[A-Za-z]?$/.test(d.flight.trim())) { ok.flight = scanSet("#f-flight", d.flight.trim().toUpperCase()); updateFlight(); }
+    ok.pickup = scanSet("#f-pick", d.pickup);
+    ok.dropoff = scanSet("#f-drop", d.dropoff);
+    var pr = typeof d.price === "number" ? d.price : parseFloat(String(d.price || "").replace(/[^0-9.]/g, ""));
+    if (isFinite(pr) && pr > 0) ok.price = scanSet("#f-price", pr);
+    if (hourly) {
+      if (Array.isArray(d.stops) && d.stops.length) {
+        $("#stops").innerHTML = "";
+        d.stops.forEach(function (s) { if (String(s).trim()) addStopRow(String(s).trim()); });
+        document.querySelectorAll("#stops input").forEach(function (i) { i.classList.add("filled"); });
+      }
+      if (Array.isArray(d.assigned) && d.assigned.length) {
+        $("#assigned").innerHTML = "";
+        d.assigned.forEach(function (s) { if (String(s).trim()) addAssignedRow(String(s).trim()); });
+        document.querySelectorAll("#assigned input").forEach(function (i) { i.classList.add("filled"); });
+      }
+    }
+    if (d.notes && String(d.notes).trim()) {
+      var nt = String(d.notes).trim(), cur = $("#f-notes").value.trim();
+      if (cur.indexOf(nt) < 0) { $("#f-notes").value = cur ? cur + "\n" + nt : nt; $("#f-notes").classList.add("filled"); }
+    }
+    renderFormNav();
+    Object.keys(ok).forEach(function (k) { if (ok[k] && k !== "type") filled++; });
+    var missing = SCAN_FIELDS.filter(function (f) { return !ok[f[0]]; }).map(function (f) { return f[2]; });
+    $("#scanMsg").textContent = filled
+      ? "Filled " + filled + (filled === 1 ? " box" : " boxes") + " (outlined in gold). Check them, then tap Save." + (missing.length ? " Not found: " + missing.join(", ") + "." : "")
+      : "I could not find job details in that image. Try a clearer screenshot.";
+  }
+  function scanErr(e) {
+    var c = e && e.code, m = {
+      not_granted: "Reading screenshots is not allowed for this page. Fill the boxes by hand.",
+      sampling_disabled: "Not available.",
+      rate_limited: "Too many requests or usage limit reached. Wait a bit, then try again.",
+      session_expired: "Try again.",
+      image_rejected: "That image could not be used. Try a different screenshot.",
+      invalid_json: "I could not read that one. Try a clearer or tighter screenshot.",
+      images_unavailable: "Screenshots are not supported in this view."
+    };
+    return c === "cancelled" ? "Stopped." : (m[c] || "Reading the screenshot failed. Try again.");
+  }
+  function scanImage(blob) {
+    if (!smp || !blob) return;
+    if (scanCtl) { $("#scanMsg").textContent = "Still reading the last screenshot…"; return; }
+    scanCtl = new AbortController();
+    $("#scanMsg").textContent = "Reading the screenshot… this takes a few seconds.";
+    $("#scanPick").disabled = true;
+    smp.json(scanPrompt(), { images: blob, signal: scanCtl.signal }).then(applyScan, function (e) {
+      $("#scanMsg").textContent = scanErr(e);
+    }).then(function () { scanCtl = null; $("#scanPick").disabled = false; $("#scanPaste").innerHTML = ""; });
+  }
+  function imageFromClipboard(ev) {
+    var cd = ev.clipboardData; if (!cd) return null;
+    var items = cd.items || [];
+    for (var i = 0; i < items.length; i++) if (items[i].kind === "file" && /^image\//.test(items[i].type)) return items[i].getAsFile();
+    for (var k = 0; cd.files && k < cd.files.length; k++) if (/^image\//.test(cd.files[k].type)) return cd.files[k];
+    return null;
+  }
+  document.addEventListener("paste", function (ev) {
+    if (state.view !== "new") return;
+    if (ev.target && ev.target.closest && ev.target.closest("#proofPaste")) {
+      var pf = imageFromClipboard(ev); ev.preventDefault();
+      if (pf) { $("#proofPaste").innerHTML = ""; addProofs([pf]); } else $("#proofMsg").textContent = "No image found on the clipboard. Copy the screenshot first, or use Add proof screenshot.";
+      return;
+    }
+    if (!smp) return;
+    var f = imageFromClipboard(ev);
+    if (f) { ev.preventDefault(); scanImage(f); }
+    else if (ev.target && ev.target.id === "scanPaste") { ev.preventDefault(); $("#scanMsg").textContent = "No image found on the clipboard. Copy the screenshot first, or use Choose a screenshot."; }
+  });
+  $("#scanPick").addEventListener("click", function () { $("#scanFile").click(); });
+  $("#scanFile").addEventListener("change", function (e) { var f = e.target.files[0]; e.target.value = ""; if (f) scanImage(f); });
+  $("#jobForm").addEventListener("input", function (e) { if (e.target.classList) e.target.classList.remove("filled"); renderFormNav(); });
+  $("#jobForm").addEventListener("click", function (e) { if (!e.target.closest("#navRow")) setTimeout(renderFormNav, 0); });
+  $("#jobForm").addEventListener("change", function (e) { if (e.target.classList) e.target.classList.remove("filled"); });
+  function initScan(c) {
+    c.use("sample").then(function (x) {
+      if (!x || !x.limits) return;
+      return x.limits().then(function (l) {
+        if (!l || !l.images) return;
+        smp = x; $("#scanFile").accept = l.images.mediaTypes.join(","); $("#scanBox").hidden = false;
+      });
+    }).catch(function () {});
+  }
+
+  // ---------- rideshare weeks and the earnings page ----------
+  // One entry per company per week (usually Monday to Sunday; Uber sometimes runs Monday to Monday). Own `rides` collection, included in the backup CSV.
+  var rides = lsGet("cjl.rides", {}), rideEditing = null, ridePushing = false;
+  var dash = { mode: "week", off: 0 }, othersOpen = false;
+  function saveRides() { lsSet("cjl.rides", rides); }
+  function getRidePending() { return lsGet("cjl.ridepending", []); }
+  function setRidePending(id, on) {
+    var p = getRidePending().filter(function (x) { return x !== id; });
+    if (on) p.push(id);
+    lsSet("cjl.ridepending", p);
+  }
+  function ymd(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+  function dAdd(ds, n) { var p = ds.split("-"); return ymd(new Date(+p[0], +p[1] - 1, +p[2] + n)); }
+  function mondayOf(ds) { var p = ds.split("-"), d = new Date(+p[0], +p[1] - 1, +p[2]); return dAdd(ds, -((d.getDay() + 6) % 7)); }
+  function isMonday(ds) { var p = ds.split("-"); return new Date(+p[0], +p[1] - 1, +p[2]).getDay() === 1; }
+  function fmtWk(ds) { var p = ds.split("-"); return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }); }
+  function fmtMD(ds) { var p = ds.split("-"); return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString(undefined, { month: "short", day: "numeric" }); }
+  // An Uber week that ends on the next Monday belongs to the week that ended the day before.
+  function rideEff(r) { return r.company === "Uber" && r.end > r.start && isMonday(r.end) ? dAdd(r.end, -1) : r.end; }
+  function sortedRides() {
+    return Object.keys(rides).map(function (k) { return rides[k]; }).sort(function (a, b) { return (b.start + b.company).localeCompare(a.start + a.company); });
+  }
+  function rideCo() { return document.querySelector('input[name="rco"]:checked').value; }
+  function syncRideMode() { $("#rdModeWrap").hidden = rideCo() !== "Uber"; }
+  function applyRideEnd() { var s = $("#rd-start").value; if (s) $("#rd-end").value = dAdd(s, rideCo() === "Uber" && $("#rd-mode").value === "mon" ? 7 : 6); }
+  function openRideSheet() { $("#rideSheet").hidden = false; }
+  function closeRideSheet() { $("#rideSheet").hidden = true; }
+  function resetRideForm() {
+    rideEditing = null; $("#rideForm").reset();
+    var s = dAdd(mondayOf(todayStr()), -7); // the week that just ended
+    $("#rd-start").value = s; $("#rd-end").value = dAdd(s, 6); $("#rd-mode").value = "sun"; syncRideMode();
+    $("#rideErr").textContent = ""; $("#rideSave").textContent = "Save week"; $("#rideDel").hidden = true; $("#rideDel").textContent = "Delete week";
+    $("#rideSheetTitle").textContent = "Rideshare week";
+  }
+  $("#rd-start").addEventListener("change", applyRideEnd);
+  $("#rd-mode").addEventListener("change", applyRideEnd);
+  document.querySelectorAll('input[name="rco"]').forEach(function (r) { r.addEventListener("change", function () { syncRideMode(); applyRideEnd(); }); });
+  $("#rideAdd").addEventListener("click", function () { resetRideForm(); openRideSheet(); });
+  $("#rideClose").addEventListener("click", closeRideSheet);
+  $("#rideSheet").addEventListener("click", function (e) { if (e.target === this) closeRideSheet(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !$("#rideSheet").hidden) closeRideSheet(); });
+  $("#rideForm").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var err = $("#rideErr"), co = rideCo(), s = $("#rd-start").value, e = $("#rd-end").value, raw = $("#rd-amt").value.trim(), amt = parseFloat(raw);
+    if (!s) { err.textContent = "Pick the day the week starts."; return; }
+    if (!e || e < s) { err.textContent = "The week must end on or after the day it starts."; return; }
+    if (raw === "" || isNaN(amt) || amt < 0) { err.textContent = "Enter the amount earned."; return; }
+    // Uber weeks may share the Monday they end and start on; every other overlap is refused.
+    var clash = sortedRides().filter(function (r) {
+      if (r.company !== co || r.id === rideEditing) return false;
+      return co === "Uber" ? (r.start < e && s < r.end) : (r.start <= e && s <= r.end);
+    })[0];
+    if (clash) { err.textContent = co + " already has " + fmtWk(clash.start) + " to " + fmtWk(clash.end) + ". Tap it in the list to change it."; return; }
+    persistRide({ id: rideEditing || ("r" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)), company: co, start: s, end: e, amount: Math.round(amt * 100) / 100, notes: $("#rd-note").value.trim(), updated: Date.now() });
+    toast("Saved " + co + " week"); closeRideSheet(); resetRideForm();
+  });
+  function loadRide(r) {
+    resetRideForm(); rideEditing = r.id;
+    document.querySelector('input[name="rco"][value="' + r.company + '"]').checked = true;
+    $("#rd-start").value = r.start; $("#rd-end").value = r.end;
+    $("#rd-mode").value = r.company === "Uber" && r.end === dAdd(r.start, 7) ? "mon" : "sun"; syncRideMode();
+    $("#rd-amt").value = r.amount; $("#rd-note").value = r.notes || "";
+    $("#rideSave").textContent = "Save changes"; $("#rideDel").hidden = false; $("#rideSheetTitle").textContent = "Edit week";
+    openRideSheet();
+  }
+  $("#rideDel").addEventListener("click", function () {
+    var id = rideEditing, r = rides[id];
+    askDelete("Delete this week?", r ? r.company + " · " + fmtWk(r.start) + " to " + fmtWk(r.end) + " · " + fmtMoney(r.amount) : "This week.", function () {
+      deleteRide(id); closeRideSheet(); resetRideForm(); toast("Week deleted");
+    });
+  });
+
+  // The period shown on the earnings page: a week (Monday to Sunday), a month, a year, or everything.
+  function dashBounds() {
+    var t = todayStr(), far = "9999-12-31", o = dash.off, m, p, d;
+    if (dash.mode === "all") return { lo: "", hi: far, title: "All time", sub: "Every job and rideshare week" };
+    if (dash.mode === "week") {
+      m = dAdd(mondayOf(t), 7 * o);
+      return { lo: m, hi: dAdd(m, 6), title: fmtMD(m) + " – " + fmtMD(dAdd(m, 6)), sub: o === 0 ? "This week" : o === -1 ? "Last week" : "Monday to Sunday" };
+    }
+    if (dash.mode === "month") {
+      p = t.split("-"); d = new Date(+p[0], +p[1] - 1 + o, 1);
+      return { lo: ymd(d), hi: ymd(new Date(d.getFullYear(), d.getMonth() + 1, 0)), title: d.toLocaleDateString(undefined, { month: "long", year: "numeric" }), sub: o === 0 ? "This month" : "" };
+    }
+    p = +t.slice(0, 4) + o;
+    return { lo: p + "-01-01", hi: p + "-12-31", title: String(p), sub: o === 0 ? "This year" : "" };
+  }
+  function grow(title, sub, value, valueSub, onClick) {
+    var r = el(onClick ? "button" : "div", "grow"), l = el("div", "gl"), v = el("div", "gv", value);
+    if (onClick) { r.type = "button"; r.addEventListener("click", onClick); }
+    l.append(el("b", null, title)); if (sub) l.append(el("small", null, sub));
+    if (valueSub) v.append(el("small", null, valueSub));
+    r.append(l, v); return r;
+  }
+  function renderRides() {
+    var b = dashBounds(), all = Object.keys(state.jobs).map(function (k) { return state.jobs[k]; });
+    $("#dashTitle").textContent = b.title; $("#dashSub").textContent = b.sub;
+    $("#dashStepper").hidden = dash.mode === "all"; $("#dashNext").disabled = dash.off >= 0;
+    var recv = 0, pend = 0, awaiting = 0, allPend = 0, byDisp = {};
+    all.forEach(function (j) { allPend += owedOf(j); });
+    all.filter(function (j) { return (!b.lo || j.date >= b.lo) && j.date <= b.hi; }).forEach(function (j) {
+      var r = recvOf(j), o = owedOf(j), k = j.dispatcher || "No dispatcher", g = byDisp[k] || (byDisp[k] = { recv: 0, pend: 0, n: 0 });
+      recv += r; pend += o; g.recv += r; g.pend += o; g.n++;
+      if (stmtDays(j) != null) awaiting++;
+    });
+    var rs = sortedRides().filter(function (r) { var e = rideEff(r); return (!b.lo || e >= b.lo) && e <= b.hi; }), tot = { Uber: 0, Lyft: 0 }, cnt = { Uber: 0, Lyft: 0 };
+    rs.forEach(function (r) { tot[r.company] += r.amount; cnt[r.company]++; });
+    var ride = tot.Uber + tot.Lyft;
+    $("#dashTotal").textContent = fmtMoney(recv + ride); $("#dashJobs").textContent = fmtMoney(recv); $("#dashRide").textContent = fmtMoney(ride); $("#dashPend").textContent = fmtMoney(pend);
+    var notes = [], other = allPend - pend;
+    if (other > 0.004) notes.push(fmtMoney(other) + " more is still pending from other periods.");
+    if (awaiting) notes.push(awaiting + (awaiting === 1 ? " cancelled job is" : " cancelled jobs are") + " waiting for the company statement.");
+    $("#dashNote").textContent = notes.join(" "); $("#dashNote").hidden = !notes.length;
+    var rows = $("#dashRows"); rows.innerHTML = "";
+    // The usual sources get their own row; every other dispatcher is grouped under Others.
+    var src = { "Source A": { recv: 0, pend: 0, n: 0 }, "Source B": { recv: 0, pend: 0, n: 0 }, "Others": { recv: 0, pend: 0, n: 0, names: {} } };
+    Object.keys(byDisp).forEach(function (k) {
+      var key = /zzsourceazz/i.test(k) ? "Source A" : /zzsourcebzz/i.test(k) ? "Source B" : "Others", t = src[key], g = byDisp[k];
+      t.recv += g.recv; t.pend += g.pend; t.n += g.n; if (key === "Others") t.names[k] = g;
+    });
+    function srcRow(name, t, sub) { return grow(name, sub || (t.n ? t.n + (t.n === 1 ? " job" : " jobs") : "No jobs in this period"), fmtMoney(t.recv), t.pend > 0.004 ? fmtMoney(t.pend) + " pending" : ""); }
+    rows.append(srcRow("Source A", src["Source A"]), srcRow("Source B", src["Source B"]));
+    ["Uber", "Lyft"].forEach(function (c) { rows.append(grow(c, cnt[c] ? cnt[c] + (cnt[c] === 1 ? " week" : " weeks") : "No weeks counted yet", fmtMoney(tot[c]))); });
+    var oth = src["Others"], onames = Object.keys(oth.names).sort(function (a, c) { return (oth.names[c].recv + oth.names[c].pend) - (oth.names[a].recv + oth.names[a].pend); });
+    rows.append(grow("Others", oth.n ? oth.n + (oth.n === 1 ? " job" : " jobs") + " · " + onames.length + (onames.length === 1 ? " source" : " sources") + (othersOpen ? "" : " · tap to see each") : "No other sources in this period", fmtMoney(oth.recv), oth.pend > 0.004 ? fmtMoney(oth.pend) + " pending" : "", oth.n ? function () { othersOpen = !othersOpen; renderRides(); } : null));
+    if (othersOpen) onames.forEach(function (k) {
+      var g = oth.names[k], r = grow(k, g.n + (g.n === 1 ? " job" : " jobs"), fmtMoney(g.recv), g.pend > 0.004 ? fmtMoney(g.pend) + " pending" : "");
+      r.classList.add("sub"); rows.append(r);
+    });
+    var list = $("#rideList"); list.innerHTML = "";
+    if (!rs.length) list.append(grow("No rideshare weeks here", "Tap Add week after a week ends.", ""));
+    rs.forEach(function (r) {
+      list.append(grow(r.company + " · " + fmtMD(r.start) + " – " + fmtMD(r.end), r.notes || "", fmtMoney(r.amount), "", function () { loadRide(r); }));
+    });
+  }
+  $("#dashMode").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    dash.mode = b.dataset.m; dash.off = 0;
+    document.querySelectorAll("#dashMode button").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+    renderRides();
+  });
+  $("#dashPrev").addEventListener("click", function () { dash.off--; renderRides(); });
+  $("#dashNext").addEventListener("click", function () { if (dash.off < 0) { dash.off++; renderRides(); } });
+  function persistRide(r) {
+    rides[r.id] = r; saveRides(); renderRides(); setRidePending(r.id, true);
+    if (db) pushRides();
+  }
+  function pushRides() {
+    if (!db || ridePushing) return Promise.resolve();
+    ridePushing = true;
+    var chain = Promise.resolve();
+    getRidePending().slice().forEach(function (id) {
+      chain = chain.then(function () {
+        var r = rides[id];
+        if (!r) { setRidePending(id, false); return; }
+        return db.doc("rides/" + id).set(r).then(function () { setRidePending(id, false); });
+      });
+    });
+    return chain.catch(function () { setSync("offline"); }).then(function () { ridePushing = false; });
+  }
+  function onRideSnap(snap) {
+    var fromCache = snap.metadata.fromCache;
+    if (fromCache && snap.empty) return;
+    var remote = {}, merged = {}, k;
+    snap.docs.forEach(function (d) { if (d.exists) remote[d.id] = d.data(); });
+    if (!fromCache && snap.empty) Object.keys(rides).forEach(function (id) { setRidePending(id, true); });
+    for (k in remote) merged[k] = remote[k];
+    getRidePending().forEach(function (id) { if (rides[id]) merged[id] = rides[id]; });
+    rides = merged; saveRides(); renderRides();
+    if (!fromCache && getRidePending().length) pushRides();
+  }
+  function deleteRide(id) {
+    delete rides[id]; saveRides(); setRidePending(id, false); renderRides();
+    if (db) db.doc("rides/" + id).delete().catch(function () { toast("Deleted here; cloud copy not removed"); });
+  }
+  resetRideForm(); renderRides();
+
+  // ---------- delete confirmation: type "delete", with a backup reminder ----------
+  function backupLine() {
+    var t = lsGet("cjl.lastBackup", null);
+    if (!t) return { warn: true, text: "You have not saved a backup yet. Go to the Backup tab and download one first." };
+    var when = new Date(t).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+    return (Date.now() - t) / 3600000 > 24
+      ? { warn: true, text: "Your last backup was " + when + ", more than a day ago. Make a fresh one on the Backup tab first." }
+      : { warn: false, text: "Your last backup was " + when + "." };
+  }
+  var delAction = null;
+  function askDelete(title, text, action) {
+    var b = backupLine();
+    $("#delTitle").textContent = title; $("#delText").textContent = text;
+    $("#delBackup").textContent = "Reminder: this cannot be undone in the app. Only a backup file can bring it back. " + b.text;
+    $("#delBackup").style.color = b.warn ? "var(--danger)" : "";
+    $("#delType").value = ""; $("#delYes").disabled = true; delAction = action;
+    $("#delDlg").hidden = false; $("#delType").focus();
+  }
+  function closeDelete() { $("#delDlg").hidden = true; delAction = null; $("#delType").value = ""; }
+  $("#delType").addEventListener("input", function () { $("#delYes").disabled = this.value.trim().toLowerCase() !== "delete"; });
+  $("#delNo").addEventListener("click", closeDelete);
+  $("#delYes").addEventListener("click", function () {
+    var a = delAction;
+    if (!a || $("#delType").value.trim().toLowerCase() !== "delete") return;
+    closeDelete(); a();
+  });
+  $("#delDlg").addEventListener("click", function (e) { if (e.target === this) closeDelete(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !$("#delDlg").hidden) closeDelete(); });
+
+  // ---------- capabilities ----------
+  function boot() {
+    try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+    resetForm(); refreshLists(); updateBackupViews(); showView("jobs");
+    dl = LOCAL_DL; setSync("local"); $("#scanBox").hidden = true; renderBackup();
+  }
+  boot();
+})();
+</script>
+</html>
