@@ -732,7 +732,7 @@ select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w
         <button class="btn ghost" type="button" id="bk-csv">Spreadsheet only (CSV, no screenshots)</button>
       </div>
       <p class="hint" id="bk-msg" style="margin-top:10px"></p>
-      <p class="hint" style="margin-top:6px">App version F1. Updates keep your jobs and rates.</p>
+      <p class="hint" style="margin-top:6px">App version F2. Updates keep your jobs and rates.</p>
       <hr style="border:0;border-top:1px dashed var(--line);margin:18px 0">
       <p class="hint" style="margin-bottom:10px">Restore: pick a backup file you downloaded earlier (ZIP or CSV). Jobs already in the app are skipped, so nothing doubles up. A ZIP also brings back the proof screenshots.</p>
       <input type="file" id="bk-file" accept=".zip,.csv,application/zip,text/csv" hidden>
@@ -909,7 +909,24 @@ select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w
   function lsGet(k, d) { try { var v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }
   function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   state.jobs = lsGet("cjl.jobs", {});
-  function saveLocal() { lsSet("cjl.jobs", state.jobs); }
+  function dispKey(n) { return String(n || "").replace(/\s+/g, " ").trim().toLowerCase(); }
+  // Dispatcher names that differ only in capital letters (or extra spaces) are the same dispatcher. Every job shows the spelling used most often (a tie goes to the newest job).
+  function canonDispatchers() {
+    var jobs = Object.keys(state.jobs).map(function (k) { return state.jobs[k]; }), tally = {}, canon = {};
+    jobs.forEach(function (j) {
+      var n = String(j.dispatcher || "").replace(/\s+/g, " ").trim(); if (!n) return;
+      var k = n.toLowerCase(), t = tally[k] || (tally[k] = {});
+      var e = t[n] || (t[n] = { c: 0, last: "" }); e.c++; var stamp = (j.date || "") + (j.start || ""); if (stamp > e.last) e.last = stamp;
+    });
+    Object.keys(tally).forEach(function (k) {
+      var best = null; Object.keys(tally[k]).forEach(function (n) { var e = tally[k][n]; if (!best || e.c > best.e.c || (e.c === best.e.c && e.last > best.e.last)) best = { n: n, e: e }; });
+      canon[k] = best.n;
+    });
+    jobs.forEach(function (j) { var n = String(j.dispatcher || "").replace(/\s+/g, " ").trim(); if (n) j.dispatcher = canon[n.toLowerCase()]; });
+    if (state.disp) state.disp = canon[dispKey(state.disp)] || state.disp;
+    if (typeof rep !== "undefined" && rep && rep.disp) rep.disp = canon[dispKey(rep.disp)] || rep.disp;
+  }
+  function saveLocal() { canonDispatchers(); lsSet("cjl.jobs", state.jobs); }
   function getPending() { return lsGet("cjl.pending", []); }
   function setPending(id, on) {
     var p = getPending().filter(function (x) { return x !== id; });
@@ -1325,6 +1342,7 @@ select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w
     });
   }
   function refreshLists() {
+    canonDispatchers();
     var d = {};
     sortedJobs().forEach(function (j) { if (j.dispatcher) d[j.dispatcher] = 1; });
     fill($("#dl-disp"), Object.keys(d));
