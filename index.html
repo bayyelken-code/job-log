@@ -716,6 +716,7 @@ select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w
     </details>
   </section>
 
+
   <section class="view" id="v-backup" hidden>
     <button class="btn small ghost" type="button" id="bk-back" style="padding-left:0;margin-bottom:6px">&lsaquo; Report</button>
     <div class="card">
@@ -732,7 +733,7 @@ select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w
         <button class="btn ghost" type="button" id="bk-csv">Spreadsheet only (CSV, no screenshots)</button>
       </div>
       <p class="hint" id="bk-msg" style="margin-top:10px"></p>
-      <p class="hint" style="margin-top:6px">App version F2. Updates keep your jobs and rates.</p>
+      <p class="hint" style="margin-top:6px">App version F4. Updates keep your jobs and rates.</p>
       <hr style="border:0;border-top:1px dashed var(--line);margin:18px 0">
       <p class="hint" style="margin-bottom:10px">Restore: pick a backup file you downloaded earlier (ZIP or CSV). Jobs already in the app are skipped, so nothing doubles up. A ZIP also brings back the proof screenshots.</p>
       <input type="file" id="bk-file" accept=".zip,.csv,application/zip,text/csv" hidden>
@@ -816,6 +817,7 @@ select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w
     </form>
   </div>
 </div>
+
 
 <div id="lightbox" role="dialog" aria-modal="true" aria-label="Proof screenshot" hidden>
   <div class="lbbar"><span id="lbCap"></span><button class="btn small" type="button" id="lbClose">Close</button></div>
@@ -998,7 +1000,7 @@ select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w
   function showView(v) {
     state.view = v;
     ["new", "jobs", "rides", "report", "rates", "calc", "backup"].forEach(function (n) { $("#v-" + n).hidden = n !== v; });
-    var tab = v === "backup" || v === "rates" || v === "calc" ? "report" : v;
+    var tab = v === "backup" || v === "rates" || v === "calc" || v === "ali" ? "report" : v;
     document.querySelectorAll("nav.tabs button").forEach(function (b) {
       if (b.dataset.v === tab) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
     });
@@ -2174,7 +2176,7 @@ select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w
     var ix = { job: col("job #"), disp: col("dispatcher"), veh: col("vehicle requested"), st: col("start time"), en: col("end time"),
       pu: col("pick-up location"), dr: col("drop-off location"), price: col("price ($)"), notes: col("notes"), fl: col("flight"), rt: col("round trip"),
       pay: col("payment status"), recv: col("amount received ($)"), pdate: col("date received"), miles: col("miles"), mest: col("miles estimated"), dly: col("delay (min)"), dwhy: col("delay reason"), pob: col("pob time"), rep: col("delay reported"), repon: col("delay reported on"),
-      st: col("status"), cxd: col("cancelled on"), cxt: col("cancelled time"), cxb: col("cancelled by"), enr: col("en route since"), cxn: col("cancellation note"), pf: col("proof files"), src: col("job source") };
+      stat: col("status"), cxd: col("cancelled on"), cxt: col("cancelled time"), cxb: col("cancelled by"), enr: col("en route since"), cxn: col("cancellation note"), pf: col("proof files"), src: col("job source") };
     var stopCols = [], asgCols = [], asgTimeCols = [];
     head.forEach(function (h, i) { if (/^stop \d+$/.test(h)) stopCols.push(i); if (/^assigned job \d+$/.test(h)) asgCols.push(i); if (/^assigned start \d+$/.test(h)) asgTimeCols.push(i); });
     var have = {};
@@ -2189,7 +2191,7 @@ select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w
       var paid = g(ix.pay).toLowerCase() === "paid", rv = g(ix.recv) === "" ? null : Number(g(ix.recv));
       var mi = g(ix.miles) === "" ? null : Number(g(ix.miles));
       if (type !== "Transfer" || (mi != null && isNaN(mi))) mi = null;
-      var dl0 = Math.round(Number(g(ix.dly))), stt = g(ix.st).toLowerCase();
+      var dl0 = Math.round(Number(g(ix.dly))), stt = g(ix.stat).toLowerCase();
       var status = stt.indexOf("billable") >= 0 ? "cxl_bill" : stt.indexOf("no charge") >= 0 ? "cxl_free" : "done";
       var job = {
         status: status, cxlDate: status === "done" ? "" : normDate(g(ix.cxd)), cxlTime: status === "done" ? "" : to24(g(ix.cxt)), cxlBy: g(ix.cxb),
@@ -2805,6 +2807,7 @@ select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w
     if (db) db.doc("rides/" + id).delete().catch(function () { toast("Deleted here; cloud copy not removed"); });
   }
   resetRideForm(); renderRides();
+
 
   // ---------- delete confirmation: type "delete", with a backup reminder ----------
   function backupLine() {
